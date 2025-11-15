@@ -1,0 +1,160 @@
+/* filters.css - Filtros y búsquedas */
+
+/* === BOTÓN TOGGLE DE BÚSQUEDA === */
+.search-toggle-container {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* === SECCIÓN DE FILTROS (VISTA CARDS) === */
+.filters-section {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    max-height: 600px;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.filters-section.filters-collapsed {
+    max-height: 0;
+    padding: 0 1.5rem;
+    margin-bottom: 0;
+    opacity: 0;
+}
+
+.filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.filters-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.filter-input,
+.filter-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.filter-input:focus,
+.filter-select:focus { 
+    background: transparent; 
+    color: #1668dc;
+    border: 1px solid #1668dc;
+}
+
+.filters-stats {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.filter-stat-value {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+/* === FILTROS EN VISTA DE DETALLE === */
+.detail-filters-section {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow);
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.detail-filters-toggle {
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-filters-content {
+    padding: 1.5rem;
+    max-height: 400px;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.detail-filters-content.detail-filters-collapsed {
+    max-height: 0;
+    padding: 0 1.5rem;
+    opacity: 0;
+}
+
+.detail-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-filters-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detail-filters-stats {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.detail-filters-stats strong {
+    color: var(--accent-color);
+    font-weight: 600;
+}

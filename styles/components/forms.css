@@ -1,0 +1,94 @@
+/* styles/components/forms.css */
+
+/* === INPUTS BASE === */
+#file-input {
+    display: none;
+}
+
+/* === INPUTS DE FECHA, HORA Y FUENTE (Unificados) === */
+.version-date-input,
+.version-time-input,
+.version-source-input {
+    padding: 0.5rem 0.75rem;
+    border: 2px solid var(--input-border);
+    border-radius: 6px;
+    font-size: 0.9rem; /* Tamaño unificado */
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: all 0.2s;
+    line-height: 1.4;
+    font-family: inherit;
+    /* Evitar que se estiren innecesariamente en flex */
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+/* Cursores específicos */
+.version-date-input,
+.version-time-input {
+    cursor: pointer;
+}
+.version-source-input {
+    cursor: text;
+}
+
+
+/* Hover y Focus unificados */
+.version-date-input:hover,
+.version-time-input:hover,
+.version-source-input:hover {
+    border-color: var(--accent-hover); /* Usar color hover */
+    background: var(--bg-primary);
+}
+
+.version-date-input:focus,
+.version-time-input:focus,
+.version-source-input:focus {
+    outline: none;
+    border-color: var(--accent-color); /* Usar accent-color normal */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 20%, transparent); /* Sombra de foco sutil */
+}
+
+/* Anchos mínimos y máximos (Ajustados) */
+.version-date-input {
+    min-width: 120px;
+}
+.version-time-input {
+    min-width: 85px; /* Un poco más ancho para HH:MM */
+}
+.version-source-input {
+    min-width: 100px; /* Ancho base reducido */
+    max-width: 150px; /* Máximo para evitar que sea muy largo */
+}
+
+
+/* === VALIDACIÓN DE CAMPOS === */
+.campo-invalido {
+    border-color: #f56565 !important; /* Rojo error */
+    background-color: color-mix(in srgb, #f56565 10%, var(--bg-primary)); /* Fondo ligeramente rojo */
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); } /* Menos vibración */
+    75% { transform: translateX(4px); }
+}
+
+/* Mensaje de validación */
+.validation-message {
+    display: block; /* Mostrar como bloque debajo */
+    margin-top: 0.2rem; /* Espacio sobre el mensaje */
+    font-size: 0.75rem;
+    color: #c53030; /* Rojo más oscuro */
+    /* Estilos opcionales para visibilidad controlada por JS */
+    /* opacity: 0; */
+    /* transition: opacity 0.2s ease; */
+    /* height: 0; */
+    /* overflow: hidden; */
+}
+/* Clase para mostrar el mensaje (si se usa JS) */
+/* .validation-message.visible {
+    opacity: 1;
+    height: auto;
+   }
+*/

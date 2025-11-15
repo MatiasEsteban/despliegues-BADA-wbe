@@ -1,0 +1,136 @@
+/* notifications.css - Sistema de notificaciones toast */
+
+/* === CONTENEDOR DE TOASTS === */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+    max-width: 90vw;
+    width: 500px;
+}
+
+/* === TOAST BASE === */
+.toast {
+    min-width: 320px;
+    max-width: 500px;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    transform: translateY(-150px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: all;
+    border-left: 4px solid;
+}
+
+.toast-show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* === TIPOS DE TOAST === */
+.toast-success {
+    border-left-color: #10B981;
+}
+
+.toast-success .toast-icon {
+    color: #10B981;
+}
+
+.toast-error {
+    border-left-color: #EF4444;
+}
+
+.toast-error .toast-icon {
+    color: #EF4444;
+}
+
+.toast-warning {
+    border-left-color: #F59E0B;
+}
+
+.toast-warning .toast-icon {
+    color: #F59E0B;
+}
+
+.toast-info {
+    border-left-color: #3B82F6;
+}
+
+.toast-info .toast-icon {
+    color: #3B82F6;
+}
+
+/* === CONTENIDO DEL TOAST === */
+.toast-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toast-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-message {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    line-height: 1;
+    padding: 0;
+}
+
+.toast-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* === TOAST DE CARGA === */
+.toast-loading {
+    border-left-color: #3B82F6;
+}
+
+.toast-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(59, 130, 246, 0.2);
+    border-top-color: #3B82F6;
+    border-radius: 50%;
+    animation: toast-spin 0.8s linear infinite;
+}

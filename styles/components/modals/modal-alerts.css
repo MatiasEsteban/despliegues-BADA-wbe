@@ -1,0 +1,59 @@
+/* modal-alerts.css - Modales de alertas, confirmaciones y mensajes */
+
+/* ========================================
+   CONTENEDOR DE ALERTAS
+======================================== */
+
+.modal-content-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* ========================================
+   ICONOS DE MODAL
+======================================== */
+
+.modal-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* Variantes de iconos por tipo de alerta */
+.modal-success .modal-icon {
+    background: #e6ffed;
+    color: #48bb78;
+}
+
+.modal-warning .modal-icon {
+    background: #fff8e1;
+    color: #ed8936;
+}
+
+.modal-error .modal-icon {
+    background: #ffe6e6;
+    color: #f56565;
+}
+
+.modal-info .modal-icon {
+    background: #ebf8ff;
+    color: #4299e1;
+}
+
+/* ========================================
+   MENSAJES
+======================================== */
+
+.modal-message {
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}

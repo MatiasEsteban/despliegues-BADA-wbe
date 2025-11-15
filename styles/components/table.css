@@ -1,0 +1,190 @@
+/* table.css - Estilos de tabla de CDUs */
+
+/* === CONTENEDOR DE TABLA === */
+.table-container {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px var(--shadow);
+    overflow: hidden;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+    position: relative;
+    will-change: scroll-position;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* === TABLA BASE === */
+.tabla-despliegues {
+    width: 100%;
+    min-width: 1200px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.tabla-despliegues thead {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+    color: white;
+}
+
+.tabla-despliegues th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Anchos de columnas */
+
+/* Anchos de columnas */
+.tabla-despliegues th:nth-child(1) { width: 180px; }  /* CDU */
+.tabla-despliegues th:nth-child(2) { width: 250px; }  /* Descripción */
+.tabla-despliegues th:nth-child(3) { width: 200px; }  /* Estado */
+.tabla-despliegues th:nth-child(4) { width: 80px; }   /* Versión BADA (reducido) */
+.tabla-despliegues th:nth-child(5) { width: 80px; }   /* Version de Miró (nuevo) */
+.tabla-despliegues th:nth-child(6) { width: 220px; }  /* Responsables */
+.tabla-despliegues th:nth-child(7) { width: 300px; }  /* Observaciones */
+.tabla-despliegues th:nth-child(8) { width: 100px; }  /* Acciones */
+
+
+/* === FILAS === */
+.tabla-despliegues tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s;
+    contain: layout style;
+}
+
+.tabla-despliegues tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.tabla-despliegues tbody tr.filtered-out {
+    display: none;
+}
+
+.tabla-despliegues tbody td {
+    padding: 0.75rem;
+    vertical-align: top;
+}
+
+/* === INPUTS Y SELECTS === */
+.tabla-despliegues input,
+.tabla-despliegues select,
+.tabla-despliegues textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid var(--input-border);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.tabla-despliegues input:focus,
+.tabla-despliegues select:focus,
+.tabla-despliegues textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.1);
+}
+
+.tabla-despliegues .campo-descripcion {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.campo-version-bada {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.campo-version-bada:hover {
+    border-color: var(--accent-color);
+}
+
+.campo-version-bada:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.1);
+}
+
+/* === CDU CON HISTORIAL === */
+.cdu-cell-with-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* === RESPONSABLES === */
+.responsables-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.responsable-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.responsable-item input {
+    flex: 1;
+    min-width: 0;
+}
+
+.responsables-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
+/* === OBSERVACIONES === */
+.observaciones-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.observacion-item {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.observacion-item input {
+    flex: 1;
+}
+
+.observaciones-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
+/* === FOOTER DE TABLA === */
+.table-footer {
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+
+/* === VIRTUAL SCROLLING === */
+.virtual-scroll-spacer {
+    pointer-events: none;
+}
+
+.virtual-scroll-spacer td {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}

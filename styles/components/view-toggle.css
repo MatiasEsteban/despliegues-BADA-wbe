@@ -1,0 +1,41 @@
+/* styles/components/view-toggle.css - Botones para alternar vista */
+
+.view-toggle-group {
+    display: flex;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px var(--shadow);
+    border: 1px solid var(--border-color);
+    margin-right: auto; /* Empuja los otros botones a la derecha */
+}
+
+.btn-view-toggle {
+    background: transparent;
+    border: none;
+    padding: 0.75rem 1rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 5px;
+}
+
+.btn-view-toggle:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.btn-view-toggle.active {
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) inset;
+}
+
+.btn-view-toggle:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.btn-view-toggle:last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}

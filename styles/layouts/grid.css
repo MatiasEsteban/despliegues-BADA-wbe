@@ -1,0 +1,97 @@
+/* grid.css - Sistema de grids y responsividad */
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 900px) {
+    .versions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .version-detail-header {
+        flex-direction: column;
+    }
+    
+    .tabla-despliegues {
+        min-width: 1000px;
+    }
+    
+    .modal {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .detail-filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-filters-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 600px) {
+    /* Modales */
+    .modal-title {
+        font-size: 1.25rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions .btn {
+        width: 100%;
+    }
+    
+    /* Badges */
+    .badge-produccion-inline {
+        display: block;
+        margin: 0.5rem 0 0 0;
+        width: fit-content;
+    }
+    
+    /* Botones */
+    .btn-save-changes {
+        bottom: 1rem;
+        right: 1rem;
+        padding: 0.875rem 1.25rem;
+        font-size: 0.875rem;
+    }
+    
+    .changes-count {
+        width: 24px;
+        height: 24px;
+        font-size: 0.75rem;
+    }
+    
+    .btn-load-more {
+        width: 100%;
+        justify-content: center;
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .load-more-container {
+        padding: 1.5rem 1rem;
+    }
+    
+    /* Toast */
+    .toast-container {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        width: auto;
+    }
+    
+    .toast {
+        min-width: auto;
+        width: 100%;
+        transform: translateY(-100px);
+    }
+    
+    .toast-show {
+        transform: translateY(0);
+    }
+}

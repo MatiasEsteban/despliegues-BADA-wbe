@@ -1,0 +1,191 @@
+/* modal-deployment-report.css - Estilos para el modal de Reporte de Despliegue */
+
+.modal.deployment-report {
+    max-width: fit-content; /* Se ajusta al contenido horizontalmente */
+    min-width: 850px; /* Ancho mínimo para que no sea muy estrecho */
+    max-height: 90vh; /* Altura máxima para todo el modal */
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: 0 15px 30px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Asegura que el scroll se maneje internamente */
+}
+
+/* Encabezado del reporte compacto */
+.deployment-report-header-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-secondary);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    padding: 2%;
+    flex-shrink: 0; /* No permite que el encabezado se encoja */
+}
+
+.deployment-report-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 2%;
+    
+}
+
+.deployment-report-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.deployment-report-version-compact {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.deployment-badge-produccion-compact {
+    background: var(--estado-produccion-bg);
+    color: var(--estado-produccion-color);
+    padding: 0.2em 0.6em;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    border: 1px solid var(--estado-produccion-border);
+}
+
+.deployment-report-header-center {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.deployment-datetime-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.deployment-datetime-item .icon-deployment {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-color);
+}
+
+.deployment-datetime-separator {
+    color: var(--border-color);
+}
+
+.deployment-report-header-right {
+    display: flex;
+    align-items: right;
+    gap: 0.4rem;
+    color: var(--text-secondary);
+    padding-right: 4%;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+.deployment-report-header-right .icon-deployment {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-color);
+}
+
+
+/* === CUERPO DEL REPORTE === */
+.deployment-report-body {
+    padding: 1.5rem;
+    display: flex; /* Flexbox para las columnas */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem; /* Espacio entre columnas */
+    overflow-x: auto; /* Permite scroll horizontal si hay muchas columnas */
+    overflow-y: hidden; /* Permite scroll vertical si el contenido de una columna es mucho */
+    flex-grow: 1; /* Permite que el cuerpo ocupe el espacio restante */
+    flex-shrink: 1; /* Permite que el cuerpo se encoja si es necesario */
+    max-height: calc(90vh - 120px); /* Ajusta esta altura máxima para dejar espacio al header y footer */
+    /* El 120px es una estimación. Calcula la altura real de tu header + footer */
+}
+
+.deployment-report-column {
+flex: 0 0 auto; /* 👈 No crecer, no encoger, tamaño automático */
+    min-width: 280px; /* 👈 Ancho mínimo garantizado (antes era 0) */
+    max-width: 400px; /* 👈 Ancho máximo para que no se hagan muy anchas */
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* max-height: 100%; */ /* Descomentar si las columnas individuales necesitan su propio scroll */
+    overflow-y: auto;  /* Descomentar si las columnas individuales necesitan su propio scroll */
+}
+
+.deployment-report-column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed var(--border-color);
+    flex-shrink: 0;
+}
+
+.deployment-report-column-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.deployment-item-count {
+    background: var(--accent-color);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2em 0.6em;
+    border-radius: 9999px;
+}
+
+.deployment-report-column-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1; /* Permite que la lista crezca y ocupe el espacio */
+    overflow-y: auto; /* Scroll individual si la lista es muy larga */
+}
+
+.deployment-report-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.deployment-check-icon {
+    min-width: 18px; /* Asegura que el icono no se encoja */
+    height: 18px;
+    color: #22c55e; /* Verde de éxito */
+    flex-shrink: 0; /* Asegura que el icono no se encoja */
+    margin-top: 0.2em; /* Alineación con el texto */
+}
+
+/* Footer específico para este modal */
+.deployment-report .modal-actions {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}

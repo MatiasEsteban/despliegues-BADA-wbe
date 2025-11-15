@@ -1,0 +1,141 @@
+/* header.css - Header y navegación principal */
+
+/* === HEADER === */
+.header {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px var(--shadow);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-info p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* === VERSION DETAIL HEADER === */
+.version-detail-header {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.version-detail-info {
+    flex: 1;
+    text-align: center;
+}
+
+#detail-version-title {
+    font-size: 2rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.version-detail-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.version-meta-field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.separator {
+    opacity: 0.5;
+}
+
+/* === COMENTARIOS DE VERSIÓN === */
+.version-comments-display {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.version-comments-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.comentario-display-categoria {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 1rem;
+    border-left: 4px solid var(--accent-color);
+}
+
+.comentario-display-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.comentario-display-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.comentario-display-list li {
+    padding-left: 1.5rem;
+    position: relative;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.comentario-display-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0.5rem;
+    color: var(--accent-color);
+    font-weight: bold;
+}.comentario-display-header .cat-icon {
+    width: 20px;  /* Ajusta este tamaño si lo prefieres */
+    height: 20px;
+    flex-shrink: 0; /* Evita que el icono se encoja */
+    color: var(--accent-hover); /* Dale un color consistente */
+}

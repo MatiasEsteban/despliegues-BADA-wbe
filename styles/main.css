@@ -1,0 +1,29 @@
+/* main.css - Archivo principal con todos los imports */
+
+/* === BASE === */
+@import './base/variables.css';
+@import './base/reset.css';
+@import './base/animations.css';
+
+/* === LAYOUTS === */
+@import './layouts/container.css';
+@import './layouts/header.css';
+@import './layouts/grid.css';
+
+/* === COMPONENTS === */
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/estados.css';
+@import './components/cards.css';
+@import './components/table.css';
+@import './components/filters.css';
+@import './components/notifications.css';
+
+/* === MODALS (Refactorizados) === */
+@import './components/modals/modal-base.css';
+@import './components/modals/modal-deployment-report.css';
+@import './components/modals/modal-changes-summary.css';
+@import './components/modals/modal-comentarios.css';
+@import './components/modals/modal-historial.css';
+@import './components/view-toggle.css';
+@import './components/list-view.css';

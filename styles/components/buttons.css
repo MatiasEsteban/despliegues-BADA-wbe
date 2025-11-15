@@ -1,0 +1,444 @@
+/* buttons.css - Estilos de botones */
+
+/* === BOTÓN BASE === */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px var(--shadow);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px var(--shadow);
+}
+
+/* === VARIANTES DE BOTONES === */
+.btn-success { 
+    background: #1668dc;
+    color: white; 
+}
+.btn-success:hover { 
+    background: #3277d6;
+
+    border: 1px solid #3277d6;
+}
+
+.btn-primary { 
+    background: #1668dc;
+    color: white; 
+}
+.btn-primary:hover { 
+    background: #2c5282; 
+}
+
+.btn-secondary { 
+    background: var(--bg-secondary); 
+    color: var(--text-secondary); 
+    border: 1px solid var(--border-color);
+}
+.btn-secondary:hover { 
+    background: transparent; 
+    color: #1668dc;
+    border: 1px solid #1668dc;
+}
+
+.btn-purple { 
+    background: #1668dc;
+    color: white; 
+}
+.btn-purple:hover { 
+    background: #3277d6;
+
+    border: 1px solid #3277d6;
+}
+
+.btn-info { 
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid whitesmoke; 
+}
+.btn-info:hover { 
+    background: transparent; 
+    color: #1668dc;
+    border: 1px solid #1668dc;
+}
+
+.btn-danger {
+    background: transparent;
+    color: #f56565;
+    padding: 0.5rem;
+    border: 1px solid #f56565;
+}
+.btn-danger:hover {
+    color: white;
+    background: #f56565;
+}
+
+/* === BOTONES ESPECIALES === */
+.theme-toggle {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-primary);
+}
+
+.theme-toggle:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+.btn-back {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.btn-back:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+/* === BOTONES DE BÚSQUEDA === */
+.btn-search-toggle {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px var(--shadow);
+    border-radius: 6px;
+}
+
+.btn-search-toggle:hover { 
+    background: transparent; 
+    color: #1668dc;
+    border: 1px solid #1668dc;
+}
+
+.btn-search-toggle .icon-chevron {
+    transition: transform 0.3s ease;
+}
+
+.btn-search-toggle.active .icon-chevron {
+    transform: rotate(180deg);
+}
+
+.btn-detail-search-toggle {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    padding: 0.5rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    box-shadow: 0 1px 3px var(--shadow);
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.btn-detail-search-toggle:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.btn-detail-search-toggle .icon-chevron {
+    transition: transform 0.3s ease;
+}
+
+.btn-detail-search-toggle.active .icon-chevron {
+    transform: rotate(180deg);
+}
+
+/* === BOTONES DE TABLA === */
+.btn-historial {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-historial:hover {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-historial:hover .icon-small {
+    stroke: white;
+}
+
+.btn-responsable,
+.btn-observacion {
+    padding: 0.5rem 0.75rem;
+    min-width: 36px;
+    height: 36px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-responsable:hover,
+.btn-observacion:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-responsable.btn-remove,
+.btn-observacion.btn-remove {
+    background: transparent;
+    color: #f56565;
+    border-color: #f56565;
+}
+
+.btn-responsable.btn-remove:hover,
+.btn-observacion.btn-remove:hover {
+    background: #f56565;
+    color: white;
+}
+
+/* === BOTÓN DE GUARDAR CAMBIOS FLOTANTE === */
+.btn-save-changes {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(56, 161, 105, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+    animation: slideInUp 0.4s ease-out;
+}
+
+.btn-save-changes:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 15px 35px rgba(56, 161, 105, 0.5);
+}
+
+.btn-save-changes:active {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-save-changes.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(100px);
+}
+
+.changes-count {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* === BOTÓN CARGAR MÁS === */
+.btn-load-more {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px var(--shadow);
+}
+
+.btn-load-more:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 12px var(--shadow);
+}
+
+.btn-load-more:active {
+    transform: translateY(-1px);
+}
+
+.btn-load-more .icon {
+    transition: transform 0.3s ease;
+}
+
+.btn-load-more:hover .icon {
+    transform: translateY(3px);
+}
+
+#versions-remaining-count {
+    display: inline-block;
+    background: var(--accent-color);
+    color: white;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    min-width: 28px;
+    text-align: center;
+}
+
+.btn-load-more:hover #versions-remaining-count {
+    background: white;
+    color: var(--accent-color);
+}
+
+/* === BOTONES DE MODAL === */
+.btn-clear-filters {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+}
+
+.btn-clear-filters:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+}
+
+.btn-comentario-cat {
+    padding: 0.5rem 0.75rem;
+    min-width: 36px;
+    height: 36px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.btn-comentario-cat:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-comentario-cat.btn-remove {
+    background: transparent;
+    color: #f56565;
+    border-color: #f56565;
+}
+
+.btn-comentario-cat.btn-remove:hover {
+    background: #f56565;
+    color: white;
+}
+
+/* === BOTONES EN TARJETAS DE VERSIÓN === */
+.btn-marcar-produccion {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid var(--text-secondary);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    z-index: 10;
+}
+
+.btn-marcar-produccion:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.btn-marcar-produccion svg {
+    stroke: var(--text-primary);
+}
+
+.version-en-produccion .btn-marcar-produccion {
+    background: rgba(16, 185, 44, 0.3);
+    border-color: rgba(16, 185, 86, 0.8);
+}
+
+.version-en-produccion .btn-marcar-produccion:hover {
+    background: rgba(16, 185, 129, 0.5);
+}
+
+/* === BOTÓN INFO DE DESPLIEGUE === */
+.btn-version-info {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(59, 130, 246, 0.9); /* 👈 Azul sólido en lugar de transparente */
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4); /* 👈 Sombra azul */
+}
+
+.btn-version-info:hover {
+    background: rgba(37, 99, 235, 1); /* 👈 Azul más oscuro al hover */
+    border-color: white;
+    transform: scale(1.15) rotate(-8deg); /* 👈 Rotación diferente */
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+}
+
+.btn-version-info svg {
+    stroke: white;
+    stroke-width: 2.5; /* 👈 Líneas más gruesas */
+}

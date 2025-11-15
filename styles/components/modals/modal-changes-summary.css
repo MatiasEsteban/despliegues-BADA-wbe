@@ -1,0 +1,172 @@
+/* modal-changes-summary.css - Estilos para el modal de Resumen de Cambios */
+
+.modal.changes-summary {
+    max-width: 700px;
+    min-width: 400px;
+}
+
+.modal-changes-summary-info {
+    padding: 0.5rem 1.5rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.modal-changes-summary-content {
+    padding: 1.5rem;
+    overflow-y: auto; /* Habilita el scroll si hay muchos cambios */
+    flex-grow: 1;
+}
+
+.change-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--bg-primary);
+}
+
+.change-item:last-child {
+    margin-bottom: 0;
+}
+
+.change-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.change-number {
+    background: var(--accent-color);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2em 0.6em;
+    border-radius: 9999px;
+    margin-right: 0.75rem;
+}
+
+.change-version {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-right: auto; /* Empuja el badge a la derecha */
+}
+
+.change-type-badge {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    padding: 0.2em 0.6em;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid var(--input-border);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.change-type-badge svg {
+    width: 16px;
+    height: 16px;
+    color: var(--accent-color);
+}
+
+.change-details {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.change-cdu-name {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.change-cdu-name svg {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-color);
+    flex-shrink: 0;
+}
+
+
+.change-estado {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.change-estado .estado-old {
+    color: var(--text-secondary);
+    text-decoration: line-through;
+}
+
+.change-estado .estado-new {
+    font-weight: 600;
+    color: rgb(49, 196, 49);
+    display: flex;
+    align-items: center;
+}
+
+.change-estado .icon-arrow {
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+}
+
+.change-item-creation {
+    background: var(--estado-produccion-bg);
+    border-color: var(--estado-produccion-border);
+}
+.change-item-creation .change-type-badge {
+    background: #d1fae5;
+    color: #047857;
+    border-color: #6ee7b7;
+}
+
+.change-item-creation .change-cdu-name {
+    color: #047857;
+}
+
+.change-item-creation .change-cdu-name svg {
+    color: #047857;
+}
+
+
+.change-creation-note {
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.change-item-produccion {
+    background: #e0f2fe;
+    border-color: #93c5fd;
+}
+.change-item-produccion .change-type-badge {
+    background: #bfdbfe;
+    color: #1e40af;
+    border-color: #93c5fd;
+}
+.change-item-produccion .change-cdu-name {
+    color: #1e40af;
+}
+.change-item-produccion .change-cdu-name svg {
+    color: #1e40af;
+}
+
+.change-item-produccion .estado-old {
+    color: #60a5fa;
+}
+
+.change-item-produccion .estado-new {
+    color: #2563eb;
+    font-weight: bold;
+}

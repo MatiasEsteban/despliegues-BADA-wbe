@@ -1,0 +1,68 @@
+/* variables.css - Variables CSS globales y temas */
+
+:root {
+    /* === COLORES BASE === */
+    --bg-gradient-start: #e2e2e2;
+    --bg-gradient-end: #d8d8d8;
+    --bg-primary: #fdfdfd;
+    --bg-secondary: #f7fafc;
+    --text-primary: #38393a;
+    --text-secondary: #38393b;
+    --border-color: #e2e8f0;
+    --input-border: #cbd5e0;
+    --accent-color: #b6beca;
+    --accent-hover: #696969;
+    --shadow: rgba(0, 0, 0, 0.1);
+    
+    /* === ESTADOS: En Desarrollo === */
+    --estado-desarrollo-bg: #FFF4E6;
+    --estado-desarrollo-color: #C05621;
+    --estado-desarrollo-border: #F97316;
+    
+    /* === ESTADOS: Pendiente de Certificación === */
+    --estado-pendiente-bg: #FEFCE8;
+    --estado-pendiente-color: #854D0E;
+    --estado-pendiente-border: #EAB308;
+    
+    /* === ESTADOS: Certificado OK === */
+    --estado-certificado-bg: #EFF6FF;
+    --estado-certificado-color: #1E40AF;
+    --estado-certificado-border: #3B82F6;
+    
+    /* === ESTADOS: En Producción === */
+    --estado-produccion-bg: #ECFDF5;
+    --estado-produccion-color: #49aa19;
+    --estado-produccion-border: #49aa19;
+}
+
+/* === TEMA OSCURO === */
+[data-theme="dark"] {
+    --bg-gradient-start: #1d1d1d;
+    --bg-gradient-end: #050505;
+    --bg-primary: #050505;
+    --bg-secondary: #0f0f0f;
+    --text-primary: #e2e8f0;
+    --text-secondary: #e8edf3;
+    --border-color: #65676b;
+    --input-border: #5c5c5c;
+    --accent-color: #0c0c0c;
+    --accent-hover: #4d545f;
+    --shadow: rgba(0, 0, 0, 0.3);
+    
+    /* Estados - tema oscuro */
+    --estado-desarrollo-bg: #7C2D12;
+    --estado-desarrollo-color: #FED7AA;
+    --estado-desarrollo-border: #F97316;
+    
+    --estado-pendiente-bg: #713F12;
+    --estado-pendiente-color: #FEF08A;
+    --estado-pendiente-border: #EAB308;
+    
+    --estado-certificado-bg: #1E3A8A;
+    --estado-certificado-color: #DBEAFE;
+    --estado-certificado-border: #3B82F6;
+    
+    --estado-produccion-bg: #196617;
+    --estado-produccion-color: #D1FAE5;
+    --estado-produccion-border: #49aa19;
+}

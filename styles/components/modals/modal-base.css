@@ -1,0 +1,179 @@
+/* modal-base.css - Estilos base para todos los modales */
+
+/* Overlay general */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.modal-show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Base para todos los modales */
+.modal {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: 90vw;
+    max-height: 90vh; /* Para que los modales también sean responsivos en altura */
+    overflow: hidden; /* Asegura que el contenido interno no se desborde */
+    transform: scale(0.9);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-overlay.modal-show .modal {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Encabezados de modales */
+.modal-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    position: relative;
+    gap: 1rem;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    flex-grow: 1;
+}
+
+.modal-header .modal-icon-header {
+    color: var(--accent-color);
+    width: 24px;
+    height: 24px;
+}
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+
+/* Cuerpo genérico del modal (para texto, etc.) */
+.modal-body-content {
+    padding: 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    overflow-y: auto; /* Permite scroll si el contenido es mucho */
+    flex-grow: 1; /* Permite que el cuerpo crezca */
+}
+
+/* Contenedor principal para alertas, confirmaciones, etc. */
+.modal-content-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.modal-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* Iconos de tipo de modal */
+.modal-success .modal-icon {
+    background: #e6ffed;
+    color: #48bb78;
+}
+
+.modal-warning .modal-icon {
+    background: #fff8e1;
+    color: #ed8936;
+}
+
+.modal-error .modal-icon {
+    background: #ffe6e6;
+    color: #f56565;
+}
+
+.modal-info .modal-icon {
+    background: #ebf8ff;
+    color: #4299e1;
+}
+
+/* Mensajes dentro del modal */
+.modal-message {
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.5;
+    white-space: pre-wrap; /* Permite saltos de línea en el mensaje */
+}
+
+/* === FOOTER DEL MODAL === */
+.modal-actions {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    /* Los radios de borde se deben aplicar en el modal específico si es necesario */
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-shrink: 0; /* No permite que el footer se encoja */
+}
+
+/* Estilos para el botón de cerrar del modal */
+.modal-close-btn {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.2em 0.5em;
+    border-radius: 50%;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Header genérico para modales con scroll (Historial, Comentarios) */
+.modal-historial-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}

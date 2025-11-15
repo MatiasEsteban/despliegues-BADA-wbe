@@ -1,0 +1,296 @@
+/* styles/components/list-view.css */
+
+#versions-list-container {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px var(--shadow);
+    overflow: hidden; /* Evita que el contenido interno desborde visualmente el contenedor */
+    margin-bottom: 2rem;
+}
+
+.versions-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Mantenemos fixed para controlar anchos */
+}
+
+.versions-list-table thead {
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border-color);
+    text-align: center;
+}
+
+.versions-list-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem; /* Aún más pequeño para 7 columnas */
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Anchos de columna - Reajustados (7 columnas) */
+/* Col: Versión | CDUs | Fuente | Creada | Despliegue | Info | Acciones */
+.versions-list-table th:nth-child(1), .versions-list-table td:nth-child(1) { width: 12%; } /* Versión */
+.versions-list-table th:nth-child(2), .versions-list-table td:nth-child(2) { width: 20%; min-width: 120px; } /* CDUs */
+.versions-list-table th:nth-child(3), .versions-list-table td:nth-child(3) { width: 13%; } /* Fuente */
+.versions-list-table th:nth-child(4), .versions-list-table td:nth-child(4) { width: 15%; min-width: 110px; } /* Creada (con hora) */
+.versions-list-table th:nth-child(5), .versions-list-table td:nth-child(5) { width: 15%; min-width: 110px; } /* Despliegue (con hora) */
+.versions-list-table th:nth-child(6), .versions-list-table td:nth-child(6) { width: 8%; text-align: center; min-width: 50px;} /* Info */
+.versions-list-table th:nth-child(7), .versions-list-table td:nth-child(7) { width: 17%; text-align: center; min-width: 120px;} /* Prod/Acciones */
+
+
+.version-list-row {
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.version-list-row:last-child { border-bottom: none; }
+.version-list-row:hover { background: var(--bg-secondary); }
+
+/* Fondo fila en producción */
+.version-list-row.version-en-produccion {
+    background-color: var(--estado-produccion-bg); /* Usar variable de fondo */
+    border-left: 4px solid var(--estado-produccion-border);
+}
+.version-list-row.version-en-produccion td {
+    color: var(--estado-produccion-color); /* Usar color de texto del estado */
+}
+.version-list-row.version-en-produccion .version-list-cell-numero {
+     color: var(--estado-produccion-color);
+     font-weight: 700;
+}
+.version-list-row.version-en-produccion .badge-produccion {
+    background: #49aa19; /* Invertir colores del badge */
+    color: white;
+    border-color: #49aa19;
+}
+.version-list-row.version-en-produccion:hover {
+     /* Oscurecer ligeramente el fondo en hover */
+     background-color: #388114; /* Usar color con opacidad */
+}
+
+
+
+.version-list-row td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle; /* Asegura alineación vertical central */
+    background-color: inherit; /* Hereda color de fondo de la fila (importante para .version-en-produccion) */
+    position: relative;
+    overflow: hidden; /* Evitar que contenido desborde */
+    text-overflow: ellipsis; /* Añadir puntos suspensivos */
+    white-space: nowrap; /* Forzar una línea por defecto */
+}
+/* CORRECCIÓN: Evitar wrap en la celda de CDUs */
+.version-list-cell-cdus {
+     white-space: nowrap; /* Forzar a no hacer wrap */
+     overflow: hidden; /* Ocultar si desborda (o usar ellipsis si se prefiere) */
+     /* text-overflow: ellipsis; */ /* Opcional si quieres puntos */
+}
+
+
+/* Celdas Numero */
+.version-list-cell-numero { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+.version-list-cell-numero .badge-produccion { font-size: 0.6rem; padding: 0.2rem 0.4rem; margin-left: 0.5rem; vertical-align: middle; }
+
+/* Celda CDUs (Estados) */
+.version-list-cell-cdus {
+    display: flex; /* Cambiado a flex para controlar mejor */
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: nowrap; /* CORRECCIÓN: Evitar wrap */
+}
+.cdu-stat-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex; /* Cambiado a inline-flex */
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0; /* No permitir que se encojan */
+}
+/* Colores dots */
+.stat-desarrollo { background: #F97316; } .stat-pendiente { background: #EAB308; } .stat-certificado { background: #3B82F6; } .stat-produccion { background: #10B981; }
+/* Indicador si no hay CDUs */
+.no-cdus-indicator { color: var(--text-secondary); font-style: italic; font-size: 0.8rem; }
+
+/* Celdas Fuente, Creada, Despliegue */
+.version-list-cell-fuente,
+.version-list-cell-fecha-creacion,
+.version-list-cell-fecha-despliegue {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    /* white-space: nowrap; */ /* Ya está en td general */
+    /* overflow: hidden; */ /* Ya está en td general */
+    /* text-overflow: ellipsis; */ /* Ya está en td general */
+}
+/* Resaltar Fuente y Despliegue */
+.version-list-cell-fuente,
+.version-list-cell-fecha-despliegue {
+     /* color: var(--text-primary); */ /* Quitado para mantener consistencia */
+     font-weight: 500;
+}
+
+
+/* Celdas de acción */
+.version-list-cell-info,
+.version-list-cell-prod {
+    text-align: center; /* Centrar horizontalmente */
+    /* white-space: nowrap; */ /* Ya está en td general */
+}
+/* Media query para permitir wrap en acciones si es necesario */
+@media (max-width: 900px) { /* Ajustar breakpoint si es necesario */
+    .version-list-cell-prod {
+        white-space: normal; /* Permitir wrap */
+    }
+     /* Ajustar anchos de columna en pantallas más pequeñas */
+    .versions-list-table th:nth-child(1), .versions-list-table td:nth-child(1) { width: 15%; } /* Versión */
+    .versions-list-table th:nth-child(2), .versions-list-table td:nth-child(2) { width: 25%; } /* CDUs */
+    .versions-list-table th:nth-child(3), .versions-list-table td:nth-child(3) { display: none; } /* Ocultar Fuente */
+    .versions-list-table th:nth-child(4), .versions-list-table td:nth-child(4) { width: 20%; } /* Creada */
+    .versions-list-table th:nth-child(5), .versions-list-table td:nth-child(5) { width: 20%; } /* Despliegue */
+    .versions-list-table th:nth-child(6), .versions-list-table td:nth-child(6) { width: 10%; } /* Info */
+    .versions-list-table th:nth-child(7), .versions-list-table td:nth-child(7) { width: 10%; } /* Prod/Acciones */
+
+}
+@media (max-width: 768px) {
+    /* Ocultar más columnas si es necesario */
+    .versions-list-table th:nth-child(4), .versions-list-table td:nth-child(4) { display: none; } /* Ocultar Creada */
+    /* Reajustar anchos restantes */
+    .versions-list-table th:nth-child(1), .versions-list-table td:nth-child(1) { width: 20%; } /* Versión */
+    .versions-list-table th:nth-child(2), .versions-list-table td:nth-child(2) { width: 30%; } /* CDUs */
+    .versions-list-table th:nth-child(5), .versions-list-table td:nth-child(5) { width: 25%; } /* Despliegue */
+    .versions-list-table th:nth-child(6), .versions-list-table td:nth-child(6) { width: 10%; } /* Info */
+    .versions-list-table th:nth-child(7), .versions-list-table td:nth-child(7) { width: 15%; } /* Prod/Acciones */
+}
+
+
+/* Botones de acción (Base) */
+.btn-action-list {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+    flex-shrink: 0;
+    margin: 2px;
+    line-height: 1;
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+}
+.btn-action-list svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+.btn-action-list:hover { transform: scale(1.1); z-index: 1; }
+
+
+/* Estilos específicos de botones */
+.version-list-cell-info .btn-version-info {
+    background: rgba(59, 130, 246, 0.9); /* Azul más suave */
+    border-color: var(--accent-color);
+    color: white
+}
+.version-list-cell-info .btn-version-info:hover {
+    background: rgba(37, 99, 235, 1); /* 👈 Azul más oscuro al hover */
+    border-color: white;
+    transform: scale(1.15) rotate(-8deg); /* 👈 Rotación diferente */
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+}
+/* Botón Marcar Producción */
+.version-list-row.version-en-produccion .version-list-cell-prod .btn-marcar-produccion {
+    background: var(--estado-produccion-border); /* Verde borde */
+    border-color: var(--estado-produccion-color); /* Verde texto */
+    color: var(--estado-produccion-color);
+}
+.version-list-row.version-en-produccion .version-list-cell-prod .btn-marcar-produccion:hover {
+    background: var(--estado-produccion-color);
+    border-color: var(--estado-produccion-color);
+    color: white;
+}
+.version-list-cell-prod .btn-marcar-produccion:hover {
+     background: var(--accent-hover); /* Gris oscuro hover */
+     border-color: var(--accent-hover);
+     color: white;
+}
+/* Botón Duplicar */
+.version-list-cell-prod .btn-duplicar-version {
+    background: #0056cf8f;;
+    border-color: #1668dc;; /* Morado */
+    color: white;
+}
+.version-list-cell-prod .btn-duplicar-version:hover {
+    background: #0056cf;;
+    border-color: #0056cf;;
+    color: white;
+}
+/* Botón Eliminar */
+.version-list-cell-prod .btn-eliminar-version {
+    background: transparent;
+    border-color: #f56565; /* Rojo */
+    color: #f56565;
+}
+.version-list-cell-prod .btn-eliminar-version:hover {
+    background: #f56565;
+    border-color: #f56565;
+    color: white;
+}
+
+
+/* Paginación */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+.pagination-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.pagination-btn:hover:not(:disabled) { 
+    background: transparent; 
+    color: #1668dc;
+    border: 1px solid #1668dc;
+}
+.pagination-btn.active {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    cursor: default; /* No hacer hover en activo */
+}
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+/* Estilo para los '...' */
+.pagination-container span {
+     color: var(--text-secondary);
+     padding: 0 0.25rem;
+}
