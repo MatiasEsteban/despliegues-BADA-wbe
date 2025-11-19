@@ -1,10 +1,9 @@
 // src/core/firebaseConfig.js
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // <--- AÑADIDO
+import { getAuth } from "firebase/auth"; // IMPORTANTE
 
 const firebaseConfig = {
-
   apiKey: "AIzaSyBjoWntpkZLsgH4gD5IqP0jzdqThPXSqK4",
   authDomain: "despliegues-bada-appbe.firebaseapp.com",
   projectId: "despliegues-bada-appbe",
@@ -16,7 +15,7 @@ const firebaseConfig = {
 
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
-// Exporta la instancia de Firestore
+
+// Exporta la instancia de Firestore y Auth
 export const db = getFirestore(app);
-// Exporta la instancia de Auth
-export const auth = getAuth(app); // <--- AÑADIDO
+export const auth = getAuth(app); // IMPORTANTE: Debe exportarse

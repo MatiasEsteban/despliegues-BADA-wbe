@@ -9,9 +9,6 @@
 @import './layouts/container.css';
 @import './layouts/header.css';
 @import './layouts/grid.css';
-@import './layouts/login.css';
-@import './layouts/detail-header.css';
-@import './layouts/activity-log.css'; /* <--- AÑADIDO */
 
 /* === COMPONENTS === */
 @import './components/buttons.css';
@@ -22,11 +19,14 @@
 @import './components/filters.css';
 @import './components/notifications.css';
 
-/* === MODALS (Refactorizados) === */
+/* === MODALS === */
 @import './components/modals/modal-base.css';
 @import './components/modals/modal-deployment-report.css';
 @import './components/modals/modal-changes-summary.css';
 @import './components/modals/modal-comentarios.css';
 @import './components/modals/modal-historial.css';
+@import './components/modals/modal-login.css'; /* NUEVO IMPORT */
+
+/* === OTROS === */
 @import './components/view-toggle.css';
 @import './components/list-view.css';

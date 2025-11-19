@@ -1,0 +1,63 @@
+/* styles/components/modals/modal-login.css */
+
+.modal-login {
+    max-width: 400px !important;
+    min-width: 300px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.login-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.login-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.login-input {
+    padding: 0.75rem;
+    border: 2px solid var(--input-border);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.login-input:focus {
+    border-color: var(--accent-color);
+    outline: none;
+}
+
+.login-error {
+    color: #e53e3e;
+    background: #fff5f5;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    border: 1px solid #feb2b2;
+    text-align: center;
+}
+
+.login-actions {
+    padding: 0 !important; /* Reset del padding del footer modal base */
+    margin-top: 1rem;
+    border-top: none !important;
+    background: transparent !important;
+}
+
+.btn-login-submit {
+    width: 100%;
+    justify-content: center;
+    font-size: 1rem;
+    padding: 0.75rem;
+}
