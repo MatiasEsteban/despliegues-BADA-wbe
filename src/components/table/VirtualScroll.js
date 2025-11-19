@@ -1,308 +1,248 @@
-// VirtualScroll.js - Sistema de scroll virtual SIMPLIFICADO y ROBUSTO
+// src/components/table/VirtualScroll.js - Sistema de scroll virtual ESTABILIZADO
 
 import { DOMBuilder } from '../domBuilder.js';
 
 export class VirtualScroll {
     constructor(config = {}) {
         this.config = {
-            rowHeight: config.rowHeight || 120,
-            visibleRows: config.visibleRows || 15,  // AUMENTADO
-            bufferRows: config.bufferRows || 10,     // AUMENTADO significativamente
+            estimatedRowHeight: config.rowHeight || 120, 
+            bufferRows: config.bufferRows || 5,
             ...config
         };
         
         this.state = {
             startIndex: 0,
-            endIndex: this.config.visibleRows + (this.config.bufferRows * 2),
-            scrollTop: 0,
-            lastScrollTop: 0
+            endIndex: 0,
+            scrollTop: 0
         };
         
         this.scrollListener = null;
         this.currentCdus = [];
-        this.isUpdating = false;
         this.tableWrapper = null;
         this.tbody = null;
+        this.rowHeights = new Map();
+        this.offsets = [];
+        
+        this.resizeObserver = new ResizeObserver(this.handleResize.bind(this));
+        this.ticking = false;
     }
 
-    /**
-     * Renderiza CDUs con virtual scrolling
-     */
+    handleResize(entries) {
+        let changed = false;
+        for (const entry of entries) {
+            const row = entry.target;
+            const index = parseInt(row.dataset.virtualIndex);
+            
+            if (!isNaN(index)) {
+                const height = entry.borderBoxSize ? entry.borderBoxSize[0].blockSize : entry.contentRect.height;
+                
+                if (Math.abs((this.rowHeights.get(index) || this.config.estimatedRowHeight) - height) > 1) {
+                    this.rowHeights.set(index, height);
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            this.updateOffsets();
+            this.updateSpacers();
+            this.requestRender();
+        }
+    }
+
     render(cdus, tbodyId = 'tabla-body', tableWrapperId = '.table-wrapper') {
         this.tableWrapper = document.querySelector(tableWrapperId);
         this.tbody = document.getElementById(tbodyId);
         
-        if (!this.tableWrapper || !this.tbody) {
-            console.error('❌ VirtualScroll: No se encontró tbody o tableWrapper');
-            return;
-        }
+        if (!this.tableWrapper || !this.tbody) return;
         
-        // CRÍTICO: Preservar scroll position
         const currentScrollTop = this.tableWrapper.scrollTop;
         
-        // Guardar referencia a CDUs
-        this.currentCdus = cdus;
+        if (cdus !== this.currentCdus) {
+            this.currentCdus = cdus;
+            this.rowHeights.clear(); 
+            this.updateOffsets();
+        }
         
-        // Remover listener anterior si existe
         if (this.scrollListener) {
             this.tableWrapper.removeEventListener('scroll', this.scrollListener);
         }
         
-        // Si ya había scroll, calcular índices basados en posición actual
-        if (currentScrollTop > 0 && cdus.length > 0) {
-            const calculatedStart = Math.max(0, Math.floor(currentScrollTop / this.config.rowHeight) - this.config.bufferRows);
-            this.state.startIndex = calculatedStart;
-            this.state.endIndex = Math.min(
-                cdus.length,
-                calculatedStart + this.config.visibleRows + (this.config.bufferRows * 2)
-            );
-            this.state.scrollTop = currentScrollTop;
-        } else {
-            // Reset state solo si es primera vez
-            this.state.startIndex = 0;
-            this.state.endIndex = Math.min(
-                this.config.visibleRows + (this.config.bufferRows * 2),
-                cdus.length
-            );
-            this.state.scrollTop = 0;
+        this.calculateVisibleRange(currentScrollTop);
+        this.renderRows();
+        
+        if (currentScrollTop > 0) {
+             requestAnimationFrame(() => {
+                if(this.tableWrapper) this.tableWrapper.scrollTop = currentScrollTop;
+             });
         }
         
-        // Limpiar tbody
+        this.scrollListener = () => this.requestRender();
+        this.tableWrapper.addEventListener('scroll', this.scrollListener, { passive: true });
+    }
+
+    updateData(newCdus) {
+        this.currentCdus = newCdus;
+        this.updateOffsets();
+        this.requestRender();
+    }
+
+    checkSizes() {
+        if (!this.tbody) return;
+        const rows = this.tbody.querySelectorAll('tr[data-virtual-index]');
+        if (rows.length > 0) {
+            this.updateOffsets();
+            this.updateSpacers();
+        }
+    }
+
+    updateOffsets() {
+        this.offsets = new Array(this.currentCdus.length);
+        let total = 0;
+        for (let i = 0; i < this.currentCdus.length; i++) {
+            this.offsets[i] = total;
+            const h = this.rowHeights.get(i) || this.config.estimatedRowHeight;
+            total += h;
+        }
+        this.totalHeight = total;
+    }
+
+    findStartIndex(scrollTop) {
+        let low = 0, high = this.currentCdus.length - 1;
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            const offset = this.offsets[mid];
+            const height = this.rowHeights.get(mid) || this.config.estimatedRowHeight;
+            
+            if (offset <= scrollTop && offset + height > scrollTop) {
+                return mid;
+            } else if (offset < scrollTop) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return Math.max(0, low - 1);
+    }
+
+    calculateVisibleRange(scrollTop) {
+        const startIndex = this.findStartIndex(scrollTop);
+        const startBuffer = Math.max(0, startIndex - this.config.bufferRows);
+        
+        const viewportHeight = this.tableWrapper.clientHeight || 600;
+        let endIndex = startIndex;
+        let currentHeight = 0;
+        
+        while (endIndex < this.currentCdus.length && currentHeight < viewportHeight) {
+            currentHeight += (this.rowHeights.get(endIndex) || this.config.estimatedRowHeight);
+            endIndex++;
+        }
+        
+        const endBuffer = Math.min(this.currentCdus.length, endIndex + this.config.bufferRows);
+        
+        this.state.startIndex = startBuffer;
+        this.state.endIndex = endBuffer;
+        this.state.scrollTop = scrollTop;
+    }
+
+    renderRows() {
+        if (!this.tbody) return;
+        
+        this.resizeObserver.disconnect();
         this.tbody.innerHTML = '';
         
-        // Crear espaciador superior
-        const topSpacer = this.createSpacer('top-spacer');
-        this.tbody.appendChild(topSpacer);
+        // Spacer Superior
+        const topHeight = this.offsets[this.state.startIndex] || 0;
+        this.tbody.appendChild(this.createSpacer('top-spacer', topHeight));
         
-        // Renderizar CDUs visibles
-        this.renderVisibleRows();
-        
-        // Crear espaciador inferior
-        const bottomSpacer = this.createSpacer('bottom-spacer');
-        this.tbody.appendChild(bottomSpacer);
-        
-        // Actualizar espaciadores
-        this.updateSpacers();
-        
-        // CRÍTICO: Restaurar scroll position DESPUÉS de renderizar
-        if (currentScrollTop > 0) {
-            requestAnimationFrame(() => {
-                this.tableWrapper.scrollTop = currentScrollTop;
-            });
-        }
-        
-        // Configurar scroll listener con throttling más agresivo
-        this.scrollListener = this.createScrollHandler();
-        this.tableWrapper.addEventListener('scroll', this.scrollListener, { passive: true });
-        
-        console.log(`📜 VirtualScroll: Renderizando [${this.state.startIndex}-${this.state.endIndex}] de ${cdus.length} CDUs`);
-    }
-
-    /**
-     * Renderiza las filas visibles
-     */
-    renderVisibleRows() {
+        // Filas
         const fragment = document.createDocumentFragment();
-        const visibleCdus = this.currentCdus.slice(this.state.startIndex, this.state.endIndex);
+        const visibleItems = this.currentCdus.slice(this.state.startIndex, this.state.endIndex);
         
-        visibleCdus.forEach(cdu => {
-            const fila = DOMBuilder.crearFilaCDU(cdu);
-            fragment.appendChild(fila);
+        visibleItems.forEach((cdu, i) => {
+            const realIndex = this.state.startIndex + i;
+            const row = DOMBuilder.crearFilaCDU(cdu);
+            row.dataset.virtualIndex = realIndex; 
+            fragment.appendChild(row);
+            this.resizeObserver.observe(row);
         });
+        this.tbody.appendChild(fragment);
         
-        const bottomSpacer = document.getElementById('bottom-spacer');
-        if (bottomSpacer) {
-            this.tbody.insertBefore(fragment, bottomSpacer);
-        } else {
-            this.tbody.appendChild(fragment);
-        }
+        // Spacer Inferior
+        const lastIndex = this.currentCdus.length - 1;
+        const totalH = (lastIndex >= 0) 
+            ? (this.offsets[lastIndex] + (this.rowHeights.get(lastIndex) || this.config.estimatedRowHeight)) 
+            : 0;
+        const renderedEndOffset = (this.offsets[this.state.endIndex] || totalH);
+        const bottomHeight = Math.max(0, totalH - renderedEndOffset);
         
-        // Ajustar textareas después de un frame
-        requestAnimationFrame(() => {
-            this.adjustTextareas();
-        });
+        this.tbody.appendChild(this.createSpacer('bottom-spacer', bottomHeight));
     }
 
-    /**
-     * Ajusta la altura de los textareas
-     */
-    adjustTextareas() {
-        const textareas = this.tbody.querySelectorAll('.campo-descripcion');
-        textareas.forEach(textarea => {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-        });
-    }
-
-    /**
-     * Crea un elemento espaciador
-     */
-    createSpacer(id) {
-        const spacer = document.createElement('tr');
-        spacer.className = 'virtual-scroll-spacer';
-        spacer.id = id;
-        spacer.innerHTML = '<td colspan="7" style="height: 0; padding: 0; border: none;"></td>';
-        return spacer;
-    }
-
-    /**
-     * Crea el handler de scroll con throttling MÁS AGRESIVO
-     */
-    createScrollHandler() {
-        let ticking = false;
-        let lastUpdate = 0;
-        const THROTTLE_MS = 100; // Throttle más agresivo
-        
-        return () => {
-            const now = Date.now();
-            
-            if (!ticking && (now - lastUpdate) > THROTTLE_MS) {
-                window.requestAnimationFrame(() => {
-                    this.handleScroll();
-                    lastUpdate = now;
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        };
-    }
-
-    /**
-     * Maneja el evento de scroll (SIMPLIFICADO)
-     */
-    handleScroll() {
-        if (this.isUpdating || !this.tableWrapper || !this.tbody) return;
-        
-        const scrollTop = this.tableWrapper.scrollTop;
-        const scrollDiff = Math.abs(scrollTop - this.state.lastScrollTop);
-        
-        // Solo actualizar si el scroll cambió significativamente (3 filas)
-        if (scrollDiff < (this.config.rowHeight * 3)) {
-            return;
-        }
-        
-        this.state.lastScrollTop = scrollTop;
-        
-        // Calcular nuevo rango
-        const newStartIndex = Math.max(
-            0,
-            Math.floor(scrollTop / this.config.rowHeight) - this.config.bufferRows
-        );
-        const newEndIndex = Math.min(
-            this.currentCdus.length,
-            newStartIndex + this.config.visibleRows + (this.config.bufferRows * 2)
-        );
-        
-        // Solo actualizar si hay cambio REAL en el rango
-        if (newStartIndex === this.state.startIndex && newEndIndex === this.state.endIndex) {
-            return;
-        }
-        
-        console.log(`🔄 VirtualScroll: [${this.state.startIndex}-${this.state.endIndex}] → [${newStartIndex}-${newEndIndex}]`);
-        
-        this.state.startIndex = newStartIndex;
-        this.state.endIndex = newEndIndex;
-        this.state.scrollTop = scrollTop;
-        
-        // Marcar como actualizando
-        this.isUpdating = true;
-        
-        // CRÍTICO: Guardar scroll antes de modificar DOM
-        const savedScrollTop = this.tableWrapper.scrollTop;
-        
-        // Remover filas antiguas
-        const existingRows = Array.from(this.tbody.querySelectorAll('tr:not(.virtual-scroll-spacer)'));
-        existingRows.forEach(row => row.remove());
-        
-        // Renderizar nuevas filas
-        this.renderVisibleRows();
-        
-        // Actualizar espaciadores
-        this.updateSpacers();
-        
-        // CRÍTICO: Restaurar scroll inmediatamente
-        this.tableWrapper.scrollTop = savedScrollTop;
-        
-        // Desmarcar actualizando
-        setTimeout(() => {
-            this.isUpdating = false;
-        }, 50);
-    }
-
-    /**
-     * Actualiza la altura de los espaciadores
-     */
     updateSpacers() {
         const topSpacer = document.getElementById('top-spacer');
         const bottomSpacer = document.getElementById('bottom-spacer');
         
-        if (!topSpacer || !bottomSpacer) return;
+        if(topSpacer) {
+            const h = this.offsets[this.state.startIndex] || 0;
+            const td = topSpacer.querySelector('td');
+            if(td) td.style.height = `${h}px`;
+        }
         
-        const topHeight = this.state.startIndex * this.config.rowHeight;
-        const bottomHeight = (this.currentCdus.length - this.state.endIndex) * this.config.rowHeight;
-        
-        topSpacer.querySelector('td').style.height = `${topHeight}px`;
-        bottomSpacer.querySelector('td').style.height = `${bottomHeight}px`;
-    }
-
-    /**
-     * Actualiza los datos sin perder el scroll (NUEVO)
-     */
-    updateData(newCdus) {
-        console.log('🔄 VirtualScroll: Actualizando datos sin perder scroll');
-        
-        // CRÍTICO: Preservar scroll position
-        const currentScrollTop = this.tableWrapper ? this.tableWrapper.scrollTop : 0;
-        
-        // Actualizar datos
-        this.currentCdus = newCdus;
-        
-        // Re-renderizar filas visibles sin cambiar índices
-        const existingRows = Array.from(this.tbody.querySelectorAll('tr:not(.virtual-scroll-spacer)'));
-        existingRows.forEach(row => row.remove());
-        
-        this.renderVisibleRows();
-        this.updateSpacers();
-        
-        // Restaurar scroll
-        if (this.tableWrapper && currentScrollTop > 0) {
-            requestAnimationFrame(() => {
-                this.tableWrapper.scrollTop = currentScrollTop;
-            });
+        if(bottomSpacer) {
+            const lastIndex = this.currentCdus.length - 1;
+            const totalH = (lastIndex >= 0) 
+                ? (this.offsets[lastIndex] + (this.rowHeights.get(lastIndex) || this.config.estimatedRowHeight)) 
+                : 0;
+            const renderedEndOffset = (this.offsets[this.state.endIndex] || totalH);
+            
+            const td = bottomSpacer.querySelector('td');
+            if(td) td.style.height = `${Math.max(0, totalH - renderedEndOffset)}px`;
         }
     }
 
-    /**
-     * Limpia el listener de scroll
-     */
+    createSpacer(id, height) {
+        const spacer = document.createElement('tr');
+        spacer.className = 'virtual-scroll-spacer';
+        spacer.id = id;
+        // Corregido: colspan="9" para que sea válido y no rompa el layout
+        spacer.innerHTML = `<td colspan="9" style="height: ${height}px; padding: 0; border: none; pointer-events: none;"></td>`;
+        return spacer;
+    }
+
+    requestRender() {
+        if (!this.ticking) {
+            window.requestAnimationFrame(() => {
+                this.handleScroll();
+                this.ticking = false;
+            });
+            this.ticking = true;
+        }
+    }
+
+    handleScroll() {
+        if (!this.tableWrapper) return;
+        const scrollTop = this.tableWrapper.scrollTop;
+        
+        const currentRowHeight = this.config.estimatedRowHeight;
+        const bufferPixels = this.config.bufferRows * currentRowHeight;
+        
+        const topLimit = this.offsets[this.state.startIndex] + (bufferPixels * 0.5);
+        const bottomLimit = (this.offsets[this.state.endIndex] || this.totalHeight) - (bufferPixels * 0.5);
+        
+        if (scrollTop < topLimit || (scrollTop + this.tableWrapper.clientHeight) > bottomLimit) {
+             this.calculateVisibleRange(scrollTop);
+             this.renderRows();
+        }
+    }
+
     cleanup() {
         if (this.scrollListener && this.tableWrapper) {
             this.tableWrapper.removeEventListener('scroll', this.scrollListener);
-            this.scrollListener = null;
         }
+        this.resizeObserver.disconnect();
+        this.rowHeights.clear();
+        this.offsets = [];
         this.currentCdus = [];
-        this.tableWrapper = null;
-        this.tbody = null;
-    }
-
-    /**
-     * Obtiene el estado actual
-     */
-    getState() {
-        return { ...this.state };
-    }
-
-    /**
-     * Resetea el scroll a la posición inicial
-     */
-    reset() {
-        this.state.startIndex = 0;
-        this.state.endIndex = this.config.visibleRows + (this.config.bufferRows * 2);
-        this.state.scrollTop = 0;
-        this.state.lastScrollTop = 0;
-        
-        if (this.tableWrapper) {
-            this.tableWrapper.scrollTop = 0;
-        }
     }
 }

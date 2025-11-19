@@ -1,7 +1,8 @@
-// navigationEvents.js - Eventos de navegación entre vistas
+// src/events/navigationEvents.js
 
 import { Modal } from '../modals/Modal.js';
 import { ComentariosModal } from '../modals/ComentariosModal.js';
+import { ProgressModal } from '../modals/ProgressModal.js';
 
 export class NavigationEvents {
     constructor(dataStore, renderer) {
@@ -13,69 +14,95 @@ export class NavigationEvents {
         this.setupBackButton();
         this.setupEditCommentsButton();
         this.setupSearchToggle();
-        this.setupViewToggle(); 
+        this.setupViewToggle();
         this.setupPaginationEvents();
-        
-        // --- AÑADIDO ---
-        this.setupActivityLogButtons(); 
-        // --- FIN AÑADIDO ---
-
+        this.setupProgressButton();
+        this.setupCommentsToggle();
         console.log('✅ Eventos de navegación configurados');
     }
 
-    /**
-     * ¡NUEVO! Configura los botones para la vista de log.
-     */
-    setupActivityLogButtons() {
-        const btnShowLog = document.getElementById('btn-activity-log');
-        if (btnShowLog) {
-            btnShowLog.addEventListener('click', () => {
-                this.renderer.showActivityLogView();
-            });
-        }
+    setupBackButton() {
+        // CORRECCIÓN: Usar delegación de eventos porque el botón se recrea al renderizar
+        const viewDetail = document.getElementById('view-detail');
+        if (!viewDetail) return;
 
-        const btnBackFromLog = document.getElementById('btn-back-to-cards-from-activity');
-        if (btnBackFromLog) {
-            btnBackFromLog.addEventListener('click', () => {
+        viewDetail.addEventListener('click', (e) => {
+            const btnBack = e.target.closest('#btn-back-to-cards');
+            if (btnBack) {
                 this.renderer.showCardsView();
-            });
-        }
+            }
+        });
     }
 
-    setupBackButton() {
-        const btnBack = document.getElementById('btn-back-to-cards');
-        btnBack.addEventListener('click', () => {
-            this.renderer.showCardsView();
+    // Listener delegado para el botón de progreso
+    setupProgressButton() {
+        const viewDetail = document.getElementById('view-detail');
+        if (!viewDetail) return;
+
+        viewDetail.addEventListener('click', async (e) => {
+            const btnProgress = e.target.closest('#btn-show-progress');
+            if (btnProgress) {
+                if (!this.renderer.currentVersionId) return;
+                
+                const version = this.dataStore.getById(this.renderer.currentVersionId);
+                if (version) {
+                    const progress = this.dataStore.statsCalculator.calculateVersionProgress(version.id);
+                    await ProgressModal.show(version.numero, progress);
+                }
+            }
+        });
+    }
+
+    // Listener delegado para toggles de comentarios
+    setupCommentsToggle() {
+        const container = document.getElementById('version-comments-container');
+        if (!container) return;
+
+        container.addEventListener('click', (e) => {
+            const btnToggle = e.target.closest('[data-action="toggle-comment-cat"]');
+            if (btnToggle) {
+                const categoryDiv = btnToggle.closest('.comentario-display-categoria');
+                const list = categoryDiv.querySelector('.comentario-display-list');
+                const icon = btnToggle.querySelector('svg');
+                
+                if (list.classList.contains('hidden')) {
+                    list.classList.remove('hidden');
+                    // Flecha arriba
+                    icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>';
+                } else {
+                    list.classList.add('hidden');
+                    // Flecha abajo
+                    icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+                }
+            }
         });
     }
 
     setupEditCommentsButton() {
-        const btnEditComments = document.getElementById('btn-edit-version-comments');
-        btnEditComments.addEventListener('click', async () => {
-            if (!this.renderer.currentVersionId) return;
-            
-            const version = this.dataStore.getAll().find(v => v.id === this.renderer.currentVersionId);
-            if (!version) return;
-            
-            // Guardar copia profunda para comparar
-            const comentariosAnteriores = JSON.parse(JSON.stringify(
-                version.comentarios || this.dataStore.getDefaultComentarios()
-            ));
-            
-            const nuevosComentarios = await ComentariosModal.show(
-                version.numero,
-                version.comentarios
-            );
-            
-            if (nuevosComentarios !== null) {
-                // Registrar cambios pendientes
-                this.registrarCambiosComentarios(version.id, comentariosAnteriores, nuevosComentarios, version.numero);
+        const viewDetail = document.getElementById('view-detail');
+        if (!viewDetail) return;
+
+        viewDetail.addEventListener('click', async (e) => {
+            const btnEdit = e.target.closest('#btn-edit-version-comments');
+            if (btnEdit) {
+                if (!this.renderer.currentVersionId) return;
                 
-                // Actualizar en dataStore (esto dispara un notify)
-                this.dataStore.updateVersion(this.renderer.currentVersionId, 'comentarios', nuevosComentarios);
+                const version = this.dataStore.getAll().find(v => v.id === this.renderer.currentVersionId);
+                if (!version) return;
                 
-                // Actualizar solo comentarios en la UI
-                this.renderer.updateVersionComments();
+                const comentariosAnteriores = JSON.parse(JSON.stringify(version.comentarios));
+                
+                const nuevosComentarios = await ComentariosModal.show(
+                    version.numero,
+                    version.comentarios
+                );
+                
+                if (nuevosComentarios !== null) {
+                    this.registrarCambiosComentarios(version.id, comentariosAnteriores, nuevosComentarios, version.numero);
+                    this.dataStore.updateVersion(this.renderer.currentVersionId, 'comentarios', nuevosComentarios);
+                    this.renderer.updateVersionComments();
+                    this.renderer.updateStats();
+                }
             }
         });
     }
@@ -84,17 +111,18 @@ export class NavigationEvents {
         const btnToggle = document.getElementById('btn-toggle-search');
         const filtersSection = document.querySelector('.filters-section');
         
-        btnToggle.addEventListener('click', () => {
-            const isCollapsed = filtersSection.classList.contains('filters-collapsed');
-            
-            if (isCollapsed) {
-                filtersSection.classList.remove('filters-collapsed');
-                btnToggle.classList.add('active');
-            } else {
-                filtersSection.classList.add('filters-collapsed');
-                btnToggle.classList.remove('active');
-            }
-        });
+        if (btnToggle) {
+            btnToggle.addEventListener('click', () => {
+                const isCollapsed = filtersSection.classList.contains('filters-collapsed');
+                if (isCollapsed) {
+                    filtersSection.classList.remove('filters-collapsed');
+                    btnToggle.classList.add('active');
+                } else {
+                    filtersSection.classList.add('filters-collapsed');
+                    btnToggle.classList.remove('active');
+                }
+            });
+        }
     }
     
     setupViewToggle() {
@@ -114,12 +142,12 @@ export class NavigationEvents {
                 this.renderer.cardViewMode = 'grid';
                 btnGridEl.classList.add('active');
                 btnListEl.classList.remove('active');
-                this.renderer.renderCardsView(); // Re-render
+                this.renderer.renderCardsView();
             } else if (btnList && !btnListEl.classList.contains('active')) {
                 this.renderer.cardViewMode = 'list';
                 btnListEl.classList.add('active');
                 btnGridEl.classList.remove('active');
-                this.renderer.renderCardsView(); // Re-render
+                this.renderer.renderCardsView();
             }
         });
     }
@@ -144,9 +172,8 @@ export class NavigationEvents {
         const categorias = ['mejoras', 'salidas', 'cambiosCaliente', 'observaciones'];
         
         categorias.forEach(categoria => {
-            // Asegurarse de que 'anteriores' tenga la estructura correcta
-            const itemsAnteriores = (anteriores && Array.isArray(anteriores[categoria])) ? anteriores[categoria] : [];
-            const itemsNuevos = (nuevos && Array.isArray(nuevos[categoria])) ? nuevos[categoria] : [];
+            const itemsAnteriores = anteriores[categoria] || [];
+            const itemsNuevos = nuevos[categoria] || [];
             
             if (itemsNuevos.length > itemsAnteriores.length) {
                 for (let i = itemsAnteriores.length; i < itemsNuevos.length; i++) {
@@ -157,6 +184,7 @@ export class NavigationEvents {
                         valorAnterior: null,
                         valorNuevo: itemsNuevos[i],
                         versionNumero,
+                        timestamp: new Date().toISOString(),
                         tipo: 'comentario-version'
                     });
                 }
@@ -171,6 +199,7 @@ export class NavigationEvents {
                         valorAnterior: itemsAnteriores[i],
                         valorNuevo: null,
                         versionNumero,
+                        timestamp: new Date().toISOString(),
                         tipo: 'comentario-version'
                     });
                 }
@@ -186,6 +215,7 @@ export class NavigationEvents {
                         valorAnterior: itemsAnteriores[i],
                         valorNuevo: itemsNuevos[i],
                         versionNumero,
+                        timestamp: new Date().toISOString(),
                         tipo: 'comentario-version'
                     });
                 }

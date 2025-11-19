@@ -1,4 +1,4 @@
-// stores/CduStore.js - Gestión de CDUs
+// src/core/stores/CduStore.js
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -34,7 +34,8 @@ export class CduStore {
             versionMiro: '',
             responsables: [],
             observaciones: [],
-            pasos: [], // Array de pasos
+            pasos: [], 
+            isPasosExpanded: false, // NUEVO: Control de estado visual
             historial: [{
                 timestamp: new Date().toISOString(),
                 tipo: 'creacion',
@@ -59,7 +60,8 @@ export class CduStore {
                 ? cdu.responsables.map(r => ({...r}))
                 : [],
             observaciones: [...(cdu.observaciones || [])],
-            pasos: Array.isArray(cdu.pasos) ? cdu.pasos.map(p => ({...p})) : [], 
+            pasos: Array.isArray(cdu.pasos) ? cdu.pasos.map(p => ({...p})) : [],
+            isPasosExpanded: cdu.isPasosExpanded || false, // Persistir estado al duplicar
             historial: []
         };
     }
@@ -119,12 +121,14 @@ export class CduStore {
             result.cdu.pasos = [];
         }
         
-        // Estructura del paso por defecto
+        // Al agregar paso, forzamos la expansión visual
+        result.cdu.isPasosExpanded = true; 
+
         result.cdu.pasos.push({ 
             titulo: '', 
             dificultad: 'Baja', 
             version: 'V1',
-            completado: false // Nuevo campo para el check
+            completado: false
         });
         
         return true;
@@ -147,6 +151,16 @@ export class CduStore {
         
         if (result.cdu.pasos && result.cdu.pasos[index]) {
             result.cdu.pasos.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
+
+    // --- GESTIÓN DE ESTADO VISUAL (NUEVO) ---
+    togglePasosExpanded(cduId, isExpanded) {
+        const result = this.findCdu(cduId);
+        if (result) {
+            result.cdu.isPasosExpanded = isExpanded;
             return true;
         }
         return false;

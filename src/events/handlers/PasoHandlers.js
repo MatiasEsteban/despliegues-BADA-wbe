@@ -8,44 +8,39 @@ export class PasoHandlers {
         this.renderer = renderer;
     }
 
-    /**
-     * Agrega un nuevo paso al CDU
-     */
     handleAddPaso(btn) {
         const cduId = parseInt(btn.dataset.cduId);
-        
-        // 1. Actualizar UI Optimista
         const container = document.querySelector(`[data-cdu-id="${cduId}"].pasos-container`);
         if (container) {
             const content = container.querySelector('.pasos-content');
             const emptyMsg = content.querySelector('.pasos-empty');
             if (emptyMsg) emptyMsg.remove();
 
-            // Asegurar que esté visible al agregar
+            // Si está oculto, mostrarlo
             if (content.classList.contains('hidden')) {
                 this.toggleVisibilityInternal(container, true);
+                // Guardar estado expandido
+                this.dataStore.cduStore.togglePasosExpanded(cduId, true);
             }
 
             const existingItems = content.querySelectorAll('.paso-item');
             const newIndex = existingItems.length;
 
-            // Crear elemento DOM manualmente
             const newItem = this.createPasoItemQuick(cduId, '', 'Baja', 'V1', false, newIndex);
             const btnAdd = content.querySelector('.btn-add');
             content.insertBefore(newItem, btnAdd);
 
-            // Focus en el input del título
             const input = newItem.querySelector('input[data-campo="paso-titulo"]');
             if (input) setTimeout(() => input.focus(), 50);
             
-            // Actualizar resumen (cuenta y %)
             this.updateSummary(cduId);
+
+            if (this.renderer.virtualScroll) {
+                requestAnimationFrame(() => this.renderer.virtualScroll.checkSizes());
+            }
         }
 
-        // 2. Actualizar Store
         this.dataStore.cduStore.addPaso(cduId);
-
-        // 3. Registrar cambio
         this.dataStore.addPendingChange({
             cduId,
             campo: 'paso-agregado',
@@ -54,17 +49,19 @@ export class PasoHandlers {
             timestamp: new Date().toISOString(),
             tipo: 'paso'
         });
-
-        // 4. Actualizar Gráfico
         this.updateGraph(cduId);
     }
 
-    /**
-     * Maneja el botón de expandir/colapsar pasos
-     */
     handleToggleVisibility(btn) {
         const container = btn.closest('.pasos-container');
+        const cduId = parseInt(container.dataset.cduId);
+        
         this.toggleVisibilityInternal(container);
+
+        // Persistir estado visual
+        const content = container.querySelector('.pasos-content');
+        const isExpanded = !content.classList.contains('hidden');
+        this.dataStore.cduStore.togglePasosExpanded(cduId, isExpanded);
     }
 
     toggleVisibilityInternal(container, forceShow = false) {
@@ -80,28 +77,26 @@ export class PasoHandlers {
             btn.innerHTML = `<svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
             btn.classList.remove('active');
         }
+
+        // Avisar al scroll virtual que el tamaño cambió
+        if (this.renderer.virtualScroll) {
+            setTimeout(() => this.renderer.virtualScroll.checkSizes(), 300);
+        }
     }
 
-    /**
-     * Maneja el check de completado
-     */
     handlePasoCheck(target) {
         const cduId = parseInt(target.dataset.cduId);
         const index = parseInt(target.dataset.pasoIndex);
         const checked = target.checked;
 
-        // Actualizar Store
         this.dataStore.cduStore.updatePaso(cduId, index, 'completado', checked);
         
-        // Actualizar UI visual
         const item = target.closest('.paso-item');
         if (checked) item.classList.add('completed');
         else item.classList.remove('completed');
 
-        // Actualizar resumen de conteo y porcentaje
         this.updateSummary(cduId);
 
-        // Registrar cambio
         this.dataStore.addPendingChange({
             cduId,
             campo: 'paso-completado',
@@ -113,14 +108,10 @@ export class PasoHandlers {
         });
     }
 
-    /**
-     * Actualiza el texto de resumen (Ej: "2/5" y "40%")
-     */
     updateSummary(cduId) {
         const container = document.querySelector(`[data-cdu-id="${cduId}"].pasos-container`);
         if (!container) return;
         
-        // Obtener datos frescos del store
         const result = this.dataStore.cduStore.findCdu(cduId);
         if (!result) return;
         
@@ -129,32 +120,27 @@ export class PasoHandlers {
         const completed = pasos.filter(p => p.completado).length;
         const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
         
-        // Actualizar conteo
         const countSpan = container.querySelector('.pasos-count-val');
         if (countSpan) countSpan.textContent = `${completed}/${total}`;
 
-        // Actualizar porcentaje
         const percentSpan = container.querySelector('.pasos-percent-val');
         if (percentSpan) {
             percentSpan.textContent = `${percentage}%`;
-            // Añadir clase verde si está al 100%
+            percentSpan.classList.remove('percent-success', 'percent-progress', 'percent-zero');
+            
             if (percentage === 100) percentSpan.classList.add('percent-success');
-            else percentSpan.classList.remove('percent-success');
+            else if (percentage > 0) percentSpan.classList.add('percent-progress');
+            else percentSpan.classList.add('percent-zero');
         }
     }
 
-    /**
-     * Maneja cambios en los campos del paso (Titulo, Dificultad, Version)
-     */
     handlePasoChange(target, campo) {
         const cduId = parseInt(target.dataset.cduId);
         const index = parseInt(target.dataset.pasoIndex);
         const valor = target.value;
 
-        // Actualizar Store
         this.dataStore.cduStore.updatePaso(cduId, index, campo, valor);
         
-        // Registrar cambio
         this.dataStore.addPendingChange({
             cduId,
             campo: `paso-${campo}`,
@@ -170,16 +156,12 @@ export class PasoHandlers {
         }
     }
 
-    /**
-     * Elimina un paso
-     */
     async handleRemovePaso(btn) {
         const cduId = parseInt(btn.dataset.cduId);
         const index = parseInt(btn.dataset.pasoIndex);
 
         const confirmacion = await Modal.confirm('¿Eliminar este paso?', 'Eliminar', 'Cancelar');
         if (confirmacion) {
-            // 1. UI Optimista
             const item = btn.closest('.paso-item');
             if (item) item.remove();
 
@@ -193,11 +175,9 @@ export class PasoHandlers {
                  content.insertBefore(empty, btnAdd);
             }
 
-            // 2. Actualizar Store y Resumen
             this.dataStore.cduStore.deletePaso(cduId, index);
             this.updateSummary(cduId);
             
-            // 3. Registrar cambio
             this.dataStore.addPendingChange({
                 cduId,
                 campo: 'paso-eliminado',
@@ -208,8 +188,11 @@ export class PasoHandlers {
                 tipo: 'paso'
             });
 
-            // 4. Actualizar Gráfico
             this.updateGraph(cduId);
+            
+            if (this.renderer.virtualScroll) {
+                requestAnimationFrame(() => this.renderer.virtualScroll.checkSizes());
+            }
         }
     }
 

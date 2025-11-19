@@ -1,0 +1,76 @@
+/* styles/components/modals/modal-progress.css */
+
+.modal-progress {
+    max-width: 500px;
+    text-align: center;
+}
+
+.modal-progress-content {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.progress-big-text {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text-secondary);
+}
+
+.progress-label {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 24px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 12px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0; /* Animará al valor inline */
+}
+
+.progress-note {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    margin-top: 1rem;
+    max-width: 80%;
+}
+
+/* Variantes de color */
+.progress-low {
+    color: #F97316; /* Naranja */
+    background-color: #F97316;
+}
+.progress-bar-fill.progress-low { background-color: #F97316; }
+.progress-big-text.progress-low { background-color: var(--bg-primary);}
+
+.progress-mid {
+    color: #3B82F6; /* Azul */
+    background-color: #3B82F6;
+}
+.progress-bar-fill.progress-mid { background-color: #3B82F6; }
+.progress-big-text.progress-mid { background-color: var(--bg-primary);}
+
+.progress-complete {
+    color: #10B981; /* Verde */
+    background-color: #10B981;
+}
+.progress-bar-fill.progress-complete { background-color: #10B981; }
+.progress-big-text.progress-complete { background-color: var(--bg-primary);}

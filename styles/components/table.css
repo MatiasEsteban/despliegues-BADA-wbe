@@ -22,7 +22,7 @@
     width: 100%;
     min-width: 1600px;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: fixed; /* Mantiene el control, pero usaremos una columna flexible */
 }
 
 .tabla-despliegues thead {
@@ -39,14 +39,14 @@
 
 /* Anchos de columnas */
 .tabla-despliegues th:nth-child(1) { width: 180px; }  /* CDU */
-.tabla-despliegues th:nth-child(2) { width: 220px; }  /* Descripción */
+/* .tabla-despliegues th:nth-child(2) { width: auto; }  <-- Descripción: Flexible (toma el espacio restante) */
 .tabla-despliegues th:nth-child(3) { width: 180px; }  /* Estado */
 .tabla-despliegues th:nth-child(4) { width: 120px; }  /* Métrica BADA */
-.tabla-despliegues th:nth-child(5) { width: 80px; }   /* Version de Miró */
-.tabla-despliegues th:nth-child(6) { width: 250px; }  /* Pasos */
+.tabla-despliegues th:nth-child(5) { width: 90px; }   /* Version de Miró */
+.tabla-despliegues th:nth-child(6) { width: 280px; }  /* Pasos (Un poco más ancho) */
 .tabla-despliegues th:nth-child(7) { width: 220px; }  /* Responsables */
-.tabla-despliegues th:nth-child(8) { width: 250px; }  /* Observaciones */
-.tabla-despliegues th:nth-child(9) { width: 80px; }   /* Acciones */
+.tabla-despliegues th:nth-child(8) { width: 260px; }  /* Observaciones */
+.tabla-despliegues th:nth-child(9) { width: 100px; }  /* Acciones */
 
 /* === FILAS === */
 .tabla-despliegues tbody tr {
@@ -162,19 +162,28 @@
     color: var(--text-primary);
 }
 
-/* Estilo del porcentaje */
+/* === PORCENTAJES VISIBLES === */
 .pasos-percent-val {
     margin-left: 0.5rem;
     font-weight: 800;
-    color: var(--text-primary);
-    background: rgba(0,0,0,0.05);
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.pasos-percent-val.percent-zero {
+    color: var(--text-secondary);
+    background: rgba(0,0,0,0.05);
+}
+
+.pasos-percent-val.percent-progress {
+    color: #2563eb;
+    background: #dbeafe;
 }
 
 .pasos-percent-val.percent-success {
-    color: #10B981; /* Verde */
+    color: #059669;
     background: #d1fae5;
 }
 
@@ -216,7 +225,7 @@
 }
 
 .paso-item.completed {
-    background: #f0fdf4; /* Verde muy claro */
+    background: #f0fdf4;
     border-color: #86efac;
 }
 
@@ -253,7 +262,7 @@
 .paso-meta-row {
     display: flex;
     gap: 0.5rem;
-    padding-left: 1.5rem; /* Indentado para alinear con el título */
+    padding-left: 1.5rem;
 }
 
 .paso-dificultad, .paso-version {

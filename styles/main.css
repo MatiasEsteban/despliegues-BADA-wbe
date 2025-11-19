@@ -25,7 +25,8 @@
 @import './components/modals/modal-changes-summary.css';
 @import './components/modals/modal-comentarios.css';
 @import './components/modals/modal-historial.css';
-@import './components/modals/modal-login.css'; /* NUEVO IMPORT */
+@import './components/modals/modal-login.css';
+@import './components/modals/modal-progress.css'; /* NUEVO */
 
 /* === OTROS === */
 @import './components/view-toggle.css';

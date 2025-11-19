@@ -1,4 +1,4 @@
-// CduRow.js - Componente para filas de CDU en la tabla
+// src/components/table/CduRow.js
 
 import { EstadoSelect } from '../estados/EstadoSelect.js';
 
@@ -58,7 +58,7 @@ export class CduRow {
         tdVersionMiro.appendChild(inputVersionMiro);
         tr.appendChild(tdVersionMiro);
 
-        // 6. PASOS (CON ACORDEÓN, CHECKS Y %)
+        // 6. PASOS (PERSISTENTE)
         const tdPasos = document.createElement('td');
         tdPasos.appendChild(this.createPasosContainer(cdu));
         tr.appendChild(tdPasos);
@@ -118,7 +118,7 @@ export class CduRow {
         return container;
     }
 
-    // --- CONTENEDOR DE PASOS (CON %) ---
+    // --- CONTENEDOR DE PASOS (PERSISTENTE) ---
     static createPasosContainer(cdu) {
         const container = document.createElement('div');
         container.className = 'pasos-container';
@@ -127,29 +127,36 @@ export class CduRow {
         const pasos = Array.isArray(cdu.pasos) ? cdu.pasos : [];
         const total = pasos.length;
         const completed = pasos.filter(p => p.completado).length;
-        
-        // Cálculo del porcentaje
         const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-        // HEADER (Siempre visible) con el porcentaje
+        let percentClass = 'percent-zero';
+        if (percentage === 100) percentClass = 'percent-success';
+        else if (percentage > 0) percentClass = 'percent-progress';
+
+        // Determinar estado visual usando propiedad del objeto
+        const isExpanded = cdu.isPasosExpanded === true;
+        
+        const iconSvg = isExpanded 
+            ? `<svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>` // Flecha arriba
+            : `<svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>`; // Flecha abajo
+
+        // HEADER
         const header = document.createElement('div');
         header.className = 'pasos-header';
         header.innerHTML = `
             <div class="pasos-summary-text">
                 <span class="pasos-count-val">${completed}/${total}</span>
-                <span class="pasos-percent-val ${percentage === 100 ? 'percent-success' : ''}">${percentage}%</span>
+                <span class="pasos-percent-val ${percentClass}">${percentage}%</span>
             </div>
-            <button class="btn-toggle-pasos" type="button" data-action="toggle-pasos" title="Mostrar/Ocultar pasos">
-                <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+            <button class="btn-toggle-pasos ${isExpanded ? 'active' : ''}" type="button" data-action="toggle-pasos" title="Mostrar/Ocultar pasos">
+                ${iconSvg}
             </button>
         `;
         container.appendChild(header);
 
-        // CONTENIDO (Oculto por defecto)
+        // CONTENIDO
         const content = document.createElement('div');
-        content.className = 'pasos-content hidden';
+        content.className = `pasos-content ${isExpanded ? '' : 'hidden'}`;
 
         if (total === 0) {
             const empty = document.createElement('div');
@@ -212,7 +219,7 @@ export class CduRow {
         return item;
     }
 
-    // --- OTROS COMPONENTES ---
+    // --- OTROS COMPONENTES (Sin cambios) ---
     static createResponsablesContainer(cdu) {
         const container = document.createElement('div');
         container.className = 'responsables-container';

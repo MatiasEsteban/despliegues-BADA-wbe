@@ -1,10 +1,11 @@
-// tableEvents.js - Orquestador principal de eventos de tabla
+// src/events/tableEvents.js - Eventos de tabla con guardado en tiempo real (Debounce)
 
 import { CduFieldHandlers } from './handlers/CduFieldHandlers.js';
 import { ResponsableHandlers } from './handlers/ResponsableHandlers.js';
 import { ObservacionHandlers } from './handlers/ObservacionHandlers.js';
 import { CduActionHandlers } from './handlers/CduActionHandlers.js';
 import { PasoHandlers } from './handlers/PasoHandlers.js';
+import { Debouncer } from '../utils/debouncer.js';
 
 export class TableEvents {
     constructor(dataStore, renderer) {
@@ -16,11 +17,28 @@ export class TableEvents {
         this.observacionHandlers = new ObservacionHandlers(dataStore, renderer);
         this.cduActionHandlers = new CduActionHandlers(dataStore, renderer);
         this.pasoHandlers = new PasoHandlers(dataStore, renderer);
+
+        // Crear versiones debounced de los handlers de texto
+        this.debouncedCduField = Debouncer.debounce((target, campo, valor) => {
+            this.cduFieldHandlers.handleCduFieldBlur(target, campo, valor);
+        }, 500);
+
+        this.debouncedResponsable = Debouncer.debounce((target, valor) => {
+            this.responsableHandlers.handleResponsableNombreBlur(target, valor);
+        }, 500);
+
+        this.debouncedObservacion = Debouncer.debounce((target, valor) => {
+            this.observacionHandlers.handleObservacionBlur(target, valor);
+        }, 500);
+        
+        this.debouncedPasoTitulo = Debouncer.debounce((target, valor) => {
+            this.pasoHandlers.handlePasoChange(target, 'titulo');
+        }, 500);
     }
 
     setup() {
         this.setupTablaEvents();
-        console.log('✅ Eventos de tabla configurados');
+        console.log('✅ Eventos de tabla configurados (Auto-save activado)');
     }
 
     setupTablaEvents() {
@@ -31,12 +49,18 @@ export class TableEvents {
             textarea.style.height = textarea.scrollHeight + 'px';
         };
         
+        // Event listener para input (guardado y resize)
         tbody.addEventListener('input', (e) => {
+            // 1. Auto-resize
             if (e.target.tagName === 'TEXTAREA') {
                 autoResizeTextarea(e.target);
             }
+            
+            // 2. Guardado en tiempo real (Debounced)
+            this.handleInput(e);
         });
 
+        // Mantenemos blur para forzar guardado inmediato al salir
         tbody.addEventListener('blur', (e) => {
             this.handleBlur(e);
         }, true);
@@ -49,7 +73,6 @@ export class TableEvents {
             await this.handleClick(e);
         });
         
-        // Observer para auto-resize
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
@@ -64,13 +87,35 @@ export class TableEvents {
         observer.observe(tbody, { childList: true, subtree: true });
     }
 
+    // Maneja input en tiempo real
+    handleInput(e) {
+        const campo = e.target.dataset.campo;
+        if (!campo) return;
+
+        const valor = e.target.value;
+        const target = e.target;
+
+        if (campo === 'observacion') {
+            this.debouncedObservacion(target, valor);
+        } 
+        else if (campo === 'responsable-nombre') {
+            this.debouncedResponsable(target, valor);
+        }
+        else if (campo === 'nombreCDU' || campo === 'descripcionCDU' || campo === 'versionMiro') {
+            this.debouncedCduField(target, campo, valor);
+        }
+        else if (campo === 'paso-titulo') {
+            this.debouncedPasoTitulo(target, valor);
+        }
+    }
+
+    // Maneja blur para asegurar guardado final
     handleBlur(e) {
         const campo = e.target.dataset.campo;
         if (!campo) return;
-        if (this.renderer.isRendering) return;
-
         const valor = e.target.value;
 
+        // Llamada directa (sin debounce) para asegurar guardado inmediato al salir
         if (campo === 'observacion') {
             this.observacionHandlers.handleObservacionBlur(e.target, valor);
         } 
@@ -80,7 +125,6 @@ export class TableEvents {
         else if (campo === 'nombreCDU' || campo === 'descripcionCDU' || campo === 'versionMiro') {
             this.cduFieldHandlers.handleCduFieldBlur(e.target, campo, valor);
         }
-        // NUEVO: Blur en título de paso
         else if (campo === 'paso-titulo') {
             this.pasoHandlers.handlePasoChange(e.target, 'titulo');
         }
@@ -97,7 +141,6 @@ export class TableEvents {
         else if (campo === 'responsable-rol') {
             this.responsableHandlers.handleRolChange(e.target);
         }
-        // NUEVO: Selects y Checkbox de pasos
         else if (campo === 'paso-dificultad') {
             this.pasoHandlers.handlePasoChange(e.target, 'dificultad');
         }
@@ -128,7 +171,6 @@ export class TableEvents {
         const btnRemoveObs = e.target.closest('[data-action="remove-observacion"]');
         if (btnRemoveObs) { await this.observacionHandlers.handleRemoveObservacion(btnRemoveObs); return; }
 
-        // NUEVO: Botones de Pasos
         const btnTogglePasos = e.target.closest('[data-action="toggle-pasos"]');
         if (btnTogglePasos) { this.pasoHandlers.handleToggleVisibility(btnTogglePasos); return; }
 
