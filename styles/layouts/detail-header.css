@@ -1,0 +1,41 @@
+/* styles/layouts/detail-header.css - Estilos para los metadatos del header de detalle */
+
+/* Estilo para las etiquetas añadidas y agrupar etiqueta+input */
+.version-meta-field .input-group {
+     display: flex;
+     flex-direction: column; /* Apila etiqueta e input */
+}
+.version-meta-field label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem; /* Espacio reducido entre icono y texto */
+    margin-bottom: 0.2rem; /* Espacio debajo de la etiqueta reducido */
+    font-size: 0.75rem; /* Tamaño más pequeño */
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.version-meta-field label svg.icon {
+     width: 14px; /* Iconos más pequeños */
+     height: 14px;
+}
+/* Ajustar ancho de inputs de fecha/hora/fuente */
+.version-date-input {
+     min-width: 110px;
+}
+ .version-time-input {
+     min-width: 80px;
+ }
+ .version-source-input {
+      min-width: 120px;
+      max-width: 180px;
+ }
+ /* Reducir gap general entre campos meta */
+ .version-detail-meta {
+    gap: 0.75rem; /* Menos espacio entre grupos */
+    flex-wrap: wrap; /* Permitir wrap si no caben */
+    justify-content: center; /* Centrar elementos si hacen wrap */
+ }
+ /* Ajuste para que los grupos no queden pegados al separador */
+ .version-detail-meta > .separator {
+      margin: 0 0.25rem;
+ }

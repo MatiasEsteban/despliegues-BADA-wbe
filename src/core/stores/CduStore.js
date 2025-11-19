@@ -31,10 +31,10 @@ export class CduStore {
             nombreCDU: '',
             descripcionCDU: '',
             estado: 'En Desarrollo',
-            versionBADA: 'V1',
-            versionMiro: '', // NUEVA PROPIEDAD
+            versionMiro: '',
             responsables: [],
             observaciones: [],
+            pasos: [], // Array de pasos
             historial: [{
                 timestamp: new Date().toISOString(),
                 tipo: 'creacion',
@@ -54,19 +54,16 @@ export class CduStore {
             nombreCDU: cdu.nombreCDU,
             descripcionCDU: cdu.descripcionCDU,
             estado: cdu.estado,
-            versionBADA: cdu.versionBADA || 'V1',
-            versionMiro: cdu.versionMiro || '', // NUEVA PROPIEDAD
+            versionMiro: cdu.versionMiro || '',
             responsables: Array.isArray(cdu.responsables) 
                 ? cdu.responsables.map(r => ({...r}))
-                : (cdu.responsable ? [{ nombre: cdu.responsable, rol: 'DEV' }] : []),
+                : [],
             observaciones: [...(cdu.observaciones || [])],
+            pasos: Array.isArray(cdu.pasos) ? cdu.pasos.map(p => ({...p})) : [], 
             historial: []
         };
     }
 
-    /**
-     * Agrega un CDU a una versión
-     */
     addCduToVersion(versionId) {
         const version = this.versionStore.getById(versionId);
         if (!version) return null;
@@ -77,9 +74,6 @@ export class CduStore {
         return nuevoCdu;
     }
 
-    /**
-     * Actualiza un campo de un CDU
-     */
     updateCdu(cduId, campo, valor) {
         const result = this.findCdu(cduId);
         if (!result) return false;
@@ -90,7 +84,6 @@ export class CduStore {
         if (valorAnterior !== valor) {
             cdu[campo] = valor;
             
-            // Determinar tipo para historial
             let tipo = campo;
             if (campo === 'nombreCDU') tipo = 'nombre';
             if (campo === 'descripcionCDU') tipo = 'descripcion';
@@ -102,205 +95,147 @@ export class CduStore {
         return false;
     }
 
-    /**
-     * Elimina un CDU de su versión
-     */
     deleteCdu(cduId) {
         for (const version of this.versionStore.getAll()) {
             const index = version.cdus.findIndex(c => c.id === cduId);
             if (index !== -1) {
                 version.cdus.splice(index, 1);
-                
-                // Si la versión queda sin CDUs, eliminarla
                 if (version.cdus.length === 0) {
                     this.versionStore.deleteVersion(version.id);
                 }
-                
                 return true;
             }
         }
         return false;
     }
 
-    /**
-     * GESTIÓN DE RESPONSABLES
-     */
-    addResponsable(cduId, nombre = '', rol = {rol}) {
+    // --- GESTIÓN DE PASOS ---
+
+    addPaso(cduId) {
         const result = this.findCdu(cduId);
         if (!result) return false;
         
-        const { cdu } = result;
-        
-        if (!Array.isArray(cdu.responsables)) {
-            cdu.responsables = [];
+        if (!Array.isArray(result.cdu.pasos)) {
+            result.cdu.pasos = [];
         }
         
-        cdu.responsables.push({ nombre, rol });
+        // Estructura del paso por defecto
+        result.cdu.pasos.push({ 
+            titulo: '', 
+            dificultad: 'Baja', 
+            version: 'V1',
+            completado: false // Nuevo campo para el check
+        });
         
-        this.addHistorialEntry(
-            cduId, 
-            'responsable', 
-            null, 
-            `Agregado: ${nombre || '(vacío)'} (${rol})`
-        );
+        return true;
+    }
+
+    updatePaso(cduId, index, campo, valor) {
+        const result = this.findCdu(cduId);
+        if (!result) return false;
         
+        if (result.cdu.pasos && result.cdu.pasos[index]) {
+            result.cdu.pasos[index][campo] = valor;
+            return true;
+        }
+        return false;
+    }
+
+    deletePaso(cduId, index) {
+        const result = this.findCdu(cduId);
+        if (!result) return false;
+        
+        if (result.cdu.pasos && result.cdu.pasos[index]) {
+            result.cdu.pasos.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
+
+    // --- OTROS HANDLERS ---
+    
+    addResponsable(cduId, nombre = '', rol = 'DEV') {
+        const result = this.findCdu(cduId);
+        if (!result) return false;
+        if (!Array.isArray(result.cdu.responsables)) result.cdu.responsables = [];
+        result.cdu.responsables.push({ nombre, rol });
+        this.addHistorialEntry(cduId, 'responsable', null, `Agregado: ${nombre} (${rol})`);
         return true;
     }
 
     updateResponsable(cduId, index, campo, valor) {
         const result = this.findCdu(cduId);
         if (!result) return false;
-        
-        const { cdu } = result;
-        
-        if (!Array.isArray(cdu.responsables) || index >= cdu.responsables.length) {
-            return false;
-        }
-        
-        const valorAnterior = cdu.responsables[index][campo];
-        
-        if (valorAnterior !== valor) {
-            cdu.responsables[index][campo] = valor;
-            
-            if (campo === 'nombre') {
-                this.addHistorialEntry(
-                    cduId, 
-                    'responsable', 
-                    `${valorAnterior || '(vacío)'} (${cdu.responsables[index].rol})`, 
-                    `${valor || '(vacío)'} (${cdu.responsables[index].rol})`
-                );
-            } else if (campo === 'rol') {
-                this.addHistorialEntry(
-                    cduId, 
-                    'responsable', 
-                    `${cdu.responsables[index].nombre || '(vacío)'} (${valorAnterior})`,
-                    `${cdu.responsables[index].nombre || '(vacío)'} (${valor})`
-                );
+        if (result.cdu.responsables && result.cdu.responsables[index]) {
+            const anterior = result.cdu.responsables[index][campo];
+            if (anterior !== valor) {
+                result.cdu.responsables[index][campo] = valor;
+                return true;
             }
-            
-            return true;
         }
-        
         return false;
     }
 
     deleteResponsable(cduId, index) {
         const result = this.findCdu(cduId);
         if (!result) return false;
-        
-        const { cdu } = result;
-        
-        if (!Array.isArray(cdu.responsables) || index >= cdu.responsables.length) {
-            return false;
+        if (result.cdu.responsables && result.cdu.responsables[index]) {
+            const nombre = result.cdu.responsables[index].nombre;
+            result.cdu.responsables.splice(index, 1);
+            this.addHistorialEntry(cduId, 'responsable', nombre, 'Eliminado');
+            return true;
         }
-        
-        const responsable = cdu.responsables[index];
-        cdu.responsables.splice(index, 1);
-        
-        this.addHistorialEntry(
-            cduId, 
-            'responsable', 
-            `${responsable.nombre || '(vacío)'} (${responsable.rol})`, 
-            'Eliminado'
-        );
-        
-        return true;
+        return false;
     }
 
-    /**
-     * GESTIÓN DE OBSERVACIONES
-     */
     addObservacion(cduId, texto = '') {
         const result = this.findCdu(cduId);
         if (!result) return false;
-        
-        const { cdu } = result;
-        
-        if (!Array.isArray(cdu.observaciones)) {
-            cdu.observaciones = [];
-        }
-        
-        cdu.observaciones.push(texto);
-        
-        this.addHistorialEntry(cduId, 'observacion', null, 'Nueva observación agregada');
-        
+        if (!Array.isArray(result.cdu.observaciones)) result.cdu.observaciones = [];
+        result.cdu.observaciones.push(texto);
+        this.addHistorialEntry(cduId, 'observacion', null, 'Observación agregada');
         return true;
     }
 
     updateObservacion(cduId, index, texto) {
         const result = this.findCdu(cduId);
         if (!result) return false;
-        
-        const { cdu } = result;
-        
-        if (!Array.isArray(cdu.observaciones) || index >= cdu.observaciones.length) {
-            return false;
+        if (result.cdu.observaciones && result.cdu.observaciones[index]) {
+            if (result.cdu.observaciones[index] !== texto) {
+                result.cdu.observaciones[index] = texto;
+                return true;
+            }
         }
-        
-        const valorAnterior = cdu.observaciones[index];
-        
-        if (valorAnterior !== texto) {
-            cdu.observaciones[index] = texto;
-            return true;
-        }
-        
         return false;
     }
 
     deleteObservacion(cduId, index) {
         const result = this.findCdu(cduId);
         if (!result) return false;
-        
-        const { cdu } = result;
-        
-        if (!Array.isArray(cdu.observaciones) || index >= cdu.observaciones.length) {
-            return false;
+        if (result.cdu.observaciones && result.cdu.observaciones[index]) {
+            result.cdu.observaciones.splice(index, 1);
+            this.addHistorialEntry(cduId, 'observacion', null, 'Observación eliminada');
+            return true;
         }
-        
-        cdu.observaciones.splice(index, 1);
-        
-        this.addHistorialEntry(cduId, 'observacion', null, 'Observación eliminada');
-        
-        return true;
+        return false;
     }
 
-    /**
-     * GESTIÓN DE HISTORIAL
-     */
     addHistorialEntry(cduId, tipo, valorAnterior, valorNuevo, campo = '') {
         const result = this.findCdu(cduId);
         if (!result) return false;
-        
-        const { cdu } = result;
-        
-        if (!Array.isArray(cdu.historial)) {
-            cdu.historial = [];
-        }
-        
-        const entry = {
+        if (!Array.isArray(result.cdu.historial)) result.cdu.historial = [];
+        result.cdu.historial.push({
             timestamp: new Date().toISOString(),
-            tipo,
-            campo,
-            valorAnterior,
-            valorNuevo
-        };
-        
-        cdu.historial.push(entry);
+            tipo, campo, valorAnterior, valorNuevo
+        });
         return true;
     }
 
-    /**
-     * Sincroniza el nextCduId con los IDs existentes
-     */
     syncNextCduId() {
         let maxCduId = 0;
-        
         this.versionStore.getAll().forEach(v => {
-            v.cdus.forEach(c => {
-                if (c.id > maxCduId) maxCduId = c.id;
-            });
+            v.cdus.forEach(c => { if (c.id > maxCduId) maxCduId = c.id; });
         });
-        
         this.nextCduId = maxCduId + 1;
     }
 }

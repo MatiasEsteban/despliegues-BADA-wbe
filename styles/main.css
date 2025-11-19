@@ -9,6 +9,9 @@
 @import './layouts/container.css';
 @import './layouts/header.css';
 @import './layouts/grid.css';
+@import './layouts/login.css';
+@import './layouts/detail-header.css';
+@import './layouts/activity-log.css'; /* <--- AÑADIDO */
 
 /* === COMPONENTS === */
 @import './components/buttons.css';

@@ -1,0 +1,82 @@
+/* styles/layouts/activity-log.css */
+
+.activity-log-header {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.activity-log-title {
+    font-size: 2rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.activity-log-container {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px var(--shadow);
+    padding: 1.5rem;
+}
+
+.activity-log-entry {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+.activity-log-entry:last-child {
+    border-bottom: none;
+}
+
+.activity-log-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-hover);
+}
+.activity-log-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.activity-log-details {
+    flex-grow: 1;
+}
+
+.activity-log-message {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+.activity-log-message strong {
+    color: var(--accent-hover);
+}
+
+.activity-log-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.activity-log-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}

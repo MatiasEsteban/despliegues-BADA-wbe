@@ -7,7 +7,7 @@ export class CduRow {
         const tr = document.createElement('tr');
         tr.dataset.cduId = cdu.id;
         
-        // CDU con botón de historial
+        // 1. CDU
         const tdCDU = document.createElement('td');
         const cduContainer = document.createElement('div');
         cduContainer.className = 'cdu-cell-with-actions';
@@ -31,7 +31,7 @@ export class CduRow {
         tdCDU.appendChild(cduContainer);
         tr.appendChild(tdCDU);
         
-        // Descripción
+        // 2. Descripción
         const tdDescripcion = document.createElement('td');
         const textareaDescripcion = this.createTextarea(cdu.descripcionCDU, 'descripcionCDU', 'Descripción del CDU');
         textareaDescripcion.className = 'campo-descripcion';
@@ -39,54 +39,43 @@ export class CduRow {
         tdDescripcion.appendChild(textareaDescripcion);
         tr.appendChild(tdDescripcion);
         
-        // Estado con iconos
+        // 3. Estado
         const tdEstado = document.createElement('td');
         const selectEstado = EstadoSelect.create(cdu.estado, cdu.id);
         tdEstado.appendChild(selectEstado);
         tr.appendChild(tdEstado);
         
-        // Versión BADA
+        // 4. Métrica BADA (Gráfico)
         const tdVersionBADA = document.createElement('td');
-        const selectVersionBADA = document.createElement('select');
-        selectVersionBADA.className = 'campo-version-bada';
-        selectVersionBADA.dataset.cduId = cdu.id;
-        selectVersionBADA.dataset.campo = 'versionBADA';
-        selectVersionBADA.maxLength = 4; // Límite de caracteres
-
-        ['V1', 'V2'].forEach(version => {
-            const option = document.createElement('option');
-            option.value = version;
-            option.textContent = version;
-            if ((cdu.versionBADA || 'V1') === version) {
-                option.selected = true;
-            }
-            selectVersionBADA.appendChild(option);
-        });
-
-        tdVersionBADA.appendChild(selectVersionBADA);
+        tdVersionBADA.appendChild(this.createBadaGraph(cdu));
         tr.appendChild(tdVersionBADA);
 
-        // ¡NUEVA COLUMNA! Version de Miró
+        // 5. Versión Miró
         const tdVersionMiro = document.createElement('td');
         const inputVersionMiro = this.createInput('text', 'campo-version-miro', cdu.versionMiro, 'versionMiro', 'V__');
         inputVersionMiro.dataset.cduId = cdu.id;
-        inputVersionMiro.maxLength = 3; // Límite de caracteres
+        inputVersionMiro.maxLength = 3;
         tdVersionMiro.appendChild(inputVersionMiro);
         tr.appendChild(tdVersionMiro);
+
+        // 6. PASOS (CON ACORDEÓN, CHECKS Y %)
+        const tdPasos = document.createElement('td');
+        tdPasos.appendChild(this.createPasosContainer(cdu));
+        tr.appendChild(tdPasos);
         
-        // Responsables con roles
+        // 7. Responsables
         const tdResponsables = document.createElement('td');
         const containerResponsables = this.createResponsablesContainer(cdu);
         tdResponsables.appendChild(containerResponsables);
         tr.appendChild(tdResponsables);
         
-        // Observaciones
+        // 8. Observaciones
         const tdObservaciones = document.createElement('td');
         const containerObservaciones = this.createObservacionesContainer(cdu);
         tdObservaciones.appendChild(containerObservaciones);
         tr.appendChild(tdObservaciones);
         
-        // Acciones
+        // 9. Acciones
         const tdAcciones = document.createElement('td');
         tdAcciones.style.textAlign = 'center';
         const btnEliminar = this.createBotonEliminar(cdu.id);
@@ -96,18 +85,141 @@ export class CduRow {
         return tr;
     }
 
+    // --- GRÁFICO BADA ---
+    static createBadaGraph(cdu) {
+        const container = document.createElement('div');
+        container.className = 'bada-graph-container';
+        container.dataset.cduId = cdu.id;
+
+        const pasos = Array.isArray(cdu.pasos) ? cdu.pasos : [];
+        const total = pasos.length;
+
+        if (total === 0) {
+            container.innerHTML = '<span class="bada-graph-empty">N/A</span>';
+            return container;
+        }
+
+        const v1Count = pasos.filter(p => p.version === 'V1').length;
+        const v2Count = pasos.filter(p => p.version === 'V2').length;
+
+        const v1Percent = (v1Count / total) * 100;
+        const v2Percent = (v2Count / total) * 100;
+
+        container.innerHTML = `
+            <div class="bada-graph-bar">
+                ${v1Count > 0 ? `<div class="bada-segment segment-v1" style="width: ${v1Percent}%"></div>` : ''}
+                ${v2Count > 0 ? `<div class="bada-segment segment-v2" style="width: ${v2Percent}%"></div>` : ''}
+            </div>
+            <div class="bada-graph-labels">
+                ${v1Count > 0 ? `<span class="label-v1">V1: ${Math.round(v1Percent)}%</span>` : ''}
+                ${v2Count > 0 ? `<span class="label-v2">V2: ${Math.round(v2Percent)}%</span>` : ''}
+            </div>
+        `;
+        return container;
+    }
+
+    // --- CONTENEDOR DE PASOS (CON %) ---
+    static createPasosContainer(cdu) {
+        const container = document.createElement('div');
+        container.className = 'pasos-container';
+        container.dataset.cduId = cdu.id;
+
+        const pasos = Array.isArray(cdu.pasos) ? cdu.pasos : [];
+        const total = pasos.length;
+        const completed = pasos.filter(p => p.completado).length;
+        
+        // Cálculo del porcentaje
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        // HEADER (Siempre visible) con el porcentaje
+        const header = document.createElement('div');
+        header.className = 'pasos-header';
+        header.innerHTML = `
+            <div class="pasos-summary-text">
+                <span class="pasos-count-val">${completed}/${total}</span>
+                <span class="pasos-percent-val ${percentage === 100 ? 'percent-success' : ''}">${percentage}%</span>
+            </div>
+            <button class="btn-toggle-pasos" type="button" data-action="toggle-pasos" title="Mostrar/Ocultar pasos">
+                <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+        `;
+        container.appendChild(header);
+
+        // CONTENIDO (Oculto por defecto)
+        const content = document.createElement('div');
+        content.className = 'pasos-content hidden';
+
+        if (total === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'pasos-empty';
+            empty.textContent = 'Sin pasos definidos';
+            content.appendChild(empty);
+        } else {
+            pasos.forEach((paso, index) => {
+                const item = this.createPasoItem(cdu.id, paso, index);
+                content.appendChild(item);
+            });
+        }
+
+        const btnAgregar = document.createElement('button');
+        btnAgregar.className = 'btn-paso btn-add';
+        btnAgregar.type = 'button';
+        btnAgregar.dataset.cduId = cdu.id;
+        btnAgregar.dataset.action = 'add-paso';
+        btnAgregar.innerHTML = '+ Paso';
+        content.appendChild(btnAgregar);
+
+        container.appendChild(content);
+        return container;
+    }
+
+    static createPasoItem(cduId, paso, index) {
+        const item = document.createElement('div');
+        item.className = `paso-item ${paso.completado ? 'completed' : ''}`;
+        item.dataset.index = index;
+
+        item.innerHTML = `
+            <div class="paso-inputs-row">
+                <div class="paso-check-container">
+                    <input type="checkbox" class="paso-check" 
+                        ${paso.completado ? 'checked' : ''}
+                        data-cdu-id="${cduId}" 
+                        data-paso-index="${index}" 
+                        data-campo="paso-completado"
+                        title="Marcar como completado">
+                </div>
+                <input type="text" class="paso-titulo" value="${paso.titulo || ''}" placeholder="Título del paso..." 
+                    data-cdu-id="${cduId}" data-paso-index="${index}" data-campo="paso-titulo">
+                <button class="btn-paso btn-remove" type="button" title="Eliminar" 
+                    data-cdu-id="${cduId}" data-paso-index="${index}" data-action="remove-paso">×</button>
+            </div>
+            <div class="paso-meta-row">
+                <select class="paso-dificultad ${paso.dificultad ? paso.dificultad.toLowerCase() : 'baja'}" 
+                    data-cdu-id="${cduId}" data-paso-index="${index}" data-campo="paso-dificultad">
+                    <option value="Baja" ${paso.dificultad === 'Baja' ? 'selected' : ''}>Baja</option>
+                    <option value="Media" ${paso.dificultad === 'Media' ? 'selected' : ''}>Media</option>
+                    <option value="Alta" ${paso.dificultad === 'Alta' ? 'selected' : ''}>Alta</option>
+                </select>
+                <select class="paso-version" 
+                    data-cdu-id="${cduId}" data-paso-index="${index}" data-campo="paso-version">
+                    <option value="V1" ${paso.version === 'V1' ? 'selected' : ''}>V1</option>
+                    <option value="V2" ${paso.version === 'V2' ? 'selected' : ''}>V2</option>
+                </select>
+            </div>
+        `;
+        return item;
+    }
+
+    // --- OTROS COMPONENTES ---
     static createResponsablesContainer(cdu) {
         const container = document.createElement('div');
         container.className = 'responsables-container';
         container.dataset.cduId = cdu.id;
         
-        // Migrar formato antiguo si existe
-        let responsables = [];
-        if (Array.isArray(cdu.responsables)) {
-            responsables = cdu.responsables;
-        } else if (cdu.responsable) {
-            responsables = [{ nombre: cdu.responsable, rol: 'DEV' }];
-        }
+        let responsables = Array.isArray(cdu.responsables) ? cdu.responsables : [];
+        if (cdu.responsable && responsables.length === 0) responsables = [{ nombre: cdu.responsable, rol: 'DEV' }];
         
         if (responsables.length === 0) {
             const empty = document.createElement('div');
@@ -116,7 +228,7 @@ export class CduRow {
             container.appendChild(empty);
         } else {
             responsables.forEach((resp, index) => {
-                const item = this.createResponsableItem(cdu.id, resp.nombre || '', resp.rol || 'DEV', index);
+                const item = this.createResponsableItem(cdu.id, resp.nombre, resp.rol, index);
                 container.appendChild(item);
             });
         }
@@ -127,9 +239,7 @@ export class CduRow {
         btnAgregar.dataset.cduId = cdu.id;
         btnAgregar.dataset.action = 'add-responsable';
         btnAgregar.innerHTML = '+';
-        btnAgregar.title = 'Agregar responsable';
         container.appendChild(btnAgregar);
-        
         return container;
     }
 
@@ -138,7 +248,6 @@ export class CduRow {
         item.className = 'responsable-item';
         item.dataset.index = index;
         
-        // CONTENEDOR DE ROL CON DISPLAY VISUAL
         const rolContainer = document.createElement('div');
         rolContainer.className = 'rol-select-container';
         
@@ -152,43 +261,24 @@ export class CduRow {
         selectRol.dataset.respIndex = index;
         selectRol.dataset.campo = 'responsable-rol';
         
-        const roles = ['DEV', 'AF', 'UX', 'AN', 'QA'];
-        roles.forEach(rolOption => {
-            const option = document.createElement('option');
-            option.value = rolOption;
-            option.textContent = rolOption;
-            if (rol === rolOption) {
-                option.selected = true;
-            }
-            selectRol.appendChild(option);
+        ['DEV', 'AF', 'UX', 'AN', 'QA'].forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r; opt.textContent = r; if(rol === r) opt.selected = true;
+            selectRol.appendChild(opt);
         });
         
         rolContainer.appendChild(rolDisplay);
         rolContainer.appendChild(selectRol);
         
-        // INPUT DE NOMBRE
-        const inputNombre = document.createElement('input');
-        inputNombre.type = 'text';
-        inputNombre.value = nombre || '';
-        inputNombre.placeholder = 'Nombre...';
-        inputNombre.dataset.cduId = cduId;
-        inputNombre.dataset.respIndex = index;
-        inputNombre.dataset.campo = 'responsable-nombre';
+        const input = document.createElement('input');
+        input.type = 'text'; input.value = nombre || ''; input.placeholder = 'Nombre...';
+        input.dataset.cduId = cduId; input.dataset.respIndex = index; input.dataset.campo = 'responsable-nombre';
         
-        // BOTÓN ELIMINAR
-        const btnRemove = document.createElement('button');
-        btnRemove.className = 'btn-responsable btn-remove';
-        btnRemove.type = 'button';
-        btnRemove.innerHTML = '×';
-        btnRemove.title = 'Eliminar responsable';
-        btnRemove.dataset.cduId = cduId;
-        btnRemove.dataset.respIndex = index;
-        btnRemove.dataset.action = 'remove-responsable';
+        const btn = document.createElement('button');
+        btn.className = 'btn-responsable btn-remove'; btn.innerHTML = '×';
+        btn.dataset.cduId = cduId; btn.dataset.respIndex = index; btn.dataset.action = 'remove-responsable';
         
-        item.appendChild(rolContainer);
-        item.appendChild(inputNombre);
-        item.appendChild(btnRemove);
-        
+        item.appendChild(rolContainer); item.appendChild(input); item.appendChild(btn);
         return item;
     }
 
@@ -196,31 +286,25 @@ export class CduRow {
         const container = document.createElement('div');
         container.className = 'observaciones-container';
         container.dataset.cduId = cdu.id;
+        const obs = Array.isArray(cdu.observaciones) ? cdu.observaciones : [];
         
-        const observaciones = Array.isArray(cdu.observaciones) ? cdu.observaciones : [];
-        
-        if (observaciones.length === 0) {
+        if (obs.length === 0) {
             const empty = document.createElement('div');
             empty.className = 'observaciones-empty';
             empty.textContent = 'Sin observaciones';
             container.appendChild(empty);
         } else {
-            observaciones.forEach((obs, index) => {
-                const obsTexto = typeof obs === 'string' ? obs : (obs.texto || '');
-                const item = this.createObservacionItem(cdu.id, obsTexto, index);
+            obs.forEach((o, i) => {
+                const txt = typeof o === 'string' ? o : (o.texto || '');
+                const item = this.createObservacionItem(cdu.id, txt, i);
                 container.appendChild(item);
             });
         }
         
-        const btnAgregar = document.createElement('button');
-        btnAgregar.className = 'btn-observacion btn-add';
-        btnAgregar.type = 'button';
-        btnAgregar.dataset.cduId = cdu.id;
-        btnAgregar.dataset.action = 'add-observacion';
-        btnAgregar.innerHTML = '+';
-        btnAgregar.title = 'Agregar observación';
-        container.appendChild(btnAgregar);
-        
+        const btn = document.createElement('button');
+        btn.className = 'btn-observacion btn-add'; btn.innerHTML = '+';
+        btn.dataset.cduId = cdu.id; btn.dataset.action = 'add-observacion';
+        container.appendChild(btn);
         return container;
     }
 
@@ -228,35 +312,19 @@ export class CduRow {
         const item = document.createElement('div');
         item.className = 'observacion-item';
         item.dataset.index = index;
-        
         const input = document.createElement('input');
-        input.type = 'text';
-        input.value = texto || '';
-        input.placeholder = 'Observación...';
-        input.dataset.cduId = cduId;
-        input.dataset.obsIndex = index;
-        input.dataset.campo = 'observacion';
-        
-        const btnRemove = document.createElement('button');
-        btnRemove.className = 'btn-observacion btn-remove';
-        btnRemove.type = 'button';
-        btnRemove.innerHTML = '×';
-        btnRemove.title = 'Eliminar observación';
-        btnRemove.dataset.cduId = cduId;
-        btnRemove.dataset.obsIndex = index;
-        btnRemove.dataset.action = 'remove-observacion';
-        
-        item.appendChild(input);
-        item.appendChild(btnRemove);
-        
+        input.type = 'text'; input.value = texto || ''; input.placeholder = 'Observación...';
+        input.dataset.cduId = cduId; input.dataset.obsIndex = index; input.dataset.campo = 'observacion';
+        const btn = document.createElement('button');
+        btn.className = 'btn-observacion btn-remove'; btn.innerHTML = '×';
+        btn.dataset.cduId = cduId; btn.dataset.obsIndex = index; btn.dataset.action = 'remove-observacion';
+        item.appendChild(input); item.appendChild(btn);
         return item;
     }
 
     static createInput(type, className, value, campo, placeholder = '') {
         const input = document.createElement('input');
-        input.type = type;
-        input.className = className;
-        input.value = value || '';
+        input.type = type; input.className = className; input.value = value || '';
         input.setAttribute('data-campo', campo);
         if (placeholder) input.placeholder = placeholder;
         return input;
@@ -266,8 +334,7 @@ export class CduRow {
         const textarea = document.createElement('textarea');
         textarea.className = campo === 'observaciones' ? 'campo-observaciones' : 'campo-descripcion';
         textarea.setAttribute('data-campo', campo);
-        textarea.placeholder = placeholder;
-        textarea.value = valor || '';
+        textarea.placeholder = placeholder; textarea.value = valor || '';
         return textarea;
     }
 
@@ -275,42 +342,17 @@ export class CduRow {
         const button = document.createElement('button');
         button.className = 'btn btn-danger btn-eliminar';
         button.setAttribute('data-cdu-id', cduId);
-        button.title = 'Eliminar CDU';
-        button.innerHTML = `
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-        `;
+        button.innerHTML = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
         return button;
     }
 
     static getRolIcon(rol) {
         const icons = {
-            'DEV': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="16 18 22 12 16 6"></polyline>
-                <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>`,
-            'AF': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>`,
-            'UX': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>`,
-            'AN': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="20" x2="12" y2="10"></line>
-                <line x1="18" y1="20" x2="18" y2="4"></line>
-                <line x1="6" y1="20" x2="6" y2="16"></line>
-            </svg>`,
-            'QA': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>`
+            'DEV': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
+            'AF': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`,
+            'UX': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
+            'AN': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>`,
+            'QA': `<svg class="rol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`
         };
         return icons[rol] || icons['DEV'];
     }

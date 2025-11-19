@@ -4,19 +4,17 @@ import { VersionStore } from './stores/VersionStore.js';
 import { CduStore } from './stores/CduStore.js';
 import { ChangeTracker } from './stores/ChangeTracker.js';
 import { StatsCalculator } from './stores/StatsCalculator.js';
-// import { StorageManager } from './storageManager.js'; // <- REEMPLAZADO
 import { NotificationSystem } from '../utils/notifications.js';
 
 // --- NUEVOS IMPORTS DE FIREBASE ---
-import { db } from './firebaseConfig.js'; 
-import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { db, auth } from './firebaseConfig.js'; // <-- AÑADIDO 'auth'
+import { doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp } from "firebase/firestore"; // <-- AÑADIDO 'collection', 'addDoc', 'serverTimestamp'
 import { Debouncer } from '../utils/debouncer.js';
 // ----------------------------------
 
 // --- CONFIGURACIÓN DE FIREBASE ---
-// Referencia al documento único que guardará todo el estado
-// "appState" es la colección, "mainDoc" es el documento.
 const remoteStateDoc = doc(db, "appState", "mainDoc");
+const activityLogCollection = collection(db, "activityLog"); // <-- NUEVA COLECCIÓN
 
 /**
  * Guarda el estado completo en Firestore.
@@ -29,7 +27,6 @@ async function _saveStateToFirebase(dataStore) {
             versionEnProduccionId: dataStore.getVersionEnProduccionId(),
             timestamp: new Date().toISOString()
         };
-        // setDoc sobrescribe el documento con los nuevos datos
         await setDoc(remoteStateDoc, state); 
         console.log("💾 Estado guardado en Firebase.");
     } catch (error) {
@@ -38,11 +35,31 @@ async function _saveStateToFirebase(dataStore) {
     }
 }
 
-// Crea una versión "debounced" de la función de guardado.
-// Esto agrupa múltiples cambios y guarda solo una vez, 1.5 segundos
-// después de la ÚLTIMA modificación.
 const debouncedSave = Debouncer.debounce(_saveStateToFirebase, 1500);
-// ----------------------------------
+
+/**
+ * Guarda el registro de actividad en Firestore.
+ * @param {Array} changes - Array de cambios para registrar.
+ */
+async function _logActivityToFirebase(changes) {
+    console.log(`📝 Registrando ${changes.length} actividades en Firebase...`);
+    try {
+        const writePromises = [];
+        for (const change of changes) {
+            // Añade un timestamp del servidor para un ordenamiento fiable
+            const logEntry = {
+                ...change,
+                timestamp: serverTimestamp() 
+            };
+            writePromises.push(addDoc(activityLogCollection, logEntry));
+        }
+        await Promise.all(writePromises);
+        console.log("✅ Actividad registrada correctamente.");
+    } catch (error) {
+        console.error("Error al registrar actividad en Firebase:", error);
+        // No notificamos al usuario para no ser intrusivos, solo logueamos.
+    }
+}
 
 
 export class DataStore {
@@ -52,16 +69,11 @@ export class DataStore {
         this.changeTracker = new ChangeTracker(this.versionStore);
         this.statsCalculator = new StatsCalculator(this.versionStore);
         this.observers = []; // Observers de UI
-        
-        // --- NUEVO FLAG ---
-        // Previene bucles de sincronización.
-        // true si el cambio vino de Firebase.
         this.isReceivingRemoteUpdate = false; 
     }
 
     // =============== SISTEMA DE OBSERVACIÓN Y GUARDADO ===============
 
-    /** Suscribe un callback para notificaciones de cambio de datos */
     subscribe(callback) {
         if (typeof callback === 'function') {
             this.observers.push(callback);
@@ -70,18 +82,14 @@ export class DataStore {
         }
     }
 
-    /** Suscribe un callback para notificaciones de cambios pendientes */
     subscribeToChanges(callback) {
         this.changeTracker.subscribe(callback);
     }
 
-    /** Notifica a los observers de UI y guarda el estado si no hay cambios pendientes */
     notify(options = {}) {
         const { fullRender = false, skipSave = false } = options;
         console.log(`🔔 Notificando observers... fullRender: ${fullRender}, skipSave: ${skipSave}`);
 
-        // Si el flag está activo, significa que los datos
-        // vienen de la nube, así que solo actualizamos la UI.
         if (this.isReceivingRemoteUpdate) {
             console.log("📡 Actualización remota en progreso, actualizando UI localmente.");
             this.observers.forEach(callback => {
@@ -90,11 +98,9 @@ export class DataStore {
                     catch (error) { console.error("Error en observer:", error); }
                 }
             });
-            return; // No disparamos un guardado de vuelta
+            return; 
         }
 
-        // Si es un cambio local, notificamos a la UI
-        // y disparamos el guardado en Firebase.
         this.observers.forEach(callback => {
              if (typeof callback === 'function') {
                  try { callback(this.versionStore.getAll(), { fullRender }); }
@@ -102,10 +108,8 @@ export class DataStore {
              }
         });
 
-        // MODIFICADO: Guardar estado en FIREBASE
         if (!skipSave && !this.hasPendingChanges()) {
             try {
-                // Usamos la versión debounced
                 debouncedSave(this);
             } catch (error) {
                  console.error("Error al llamar a debouncedSave:", error);
@@ -115,42 +119,32 @@ export class DataStore {
           else { console.log("💾 Guardado saltado (cambios pendientes)."); }
     }
 
-    // =============== ¡NUEVA FUNCIÓN DE CARGA! ===============
-    /**
-     * Se suscribe a los cambios en tiempo real de Firebase.
-     * Reemplaza a `StorageManager.loadState()`.
-     */
+    // =============== CARGA DE DATOS ===============
+    
     subscribeToRemoteChanges() {
         const closeLoading = NotificationSystem.loading('Conectando al servidor...');
         
         onSnapshot(remoteStateDoc, (doc) => {
-            closeLoading(); // Cerramos el "Cargando..."
+            closeLoading(); 
             
             if (doc.exists()) {
                 const savedState = doc.data();
                 console.log("📡 Datos recibidos de Firebase, actualizando estado local...");
                 
-                // 1. Poner el flag en true
                 this.isReceivingRemoteUpdate = true;
                 
-                // 2. Cargar los datos en el store
                 if (savedState && Array.isArray(savedState.versiones)) {
                     this.replaceAll(savedState.versiones, savedState.versionEnProduccionId);
                     NotificationSystem.success('Datos sincronizados.', 1500);
                 }
                 
-                // 3. Quitar el flag
-                // Usamos un timeout corto para asegurar que
-                // todos los renders de la UI se completen
                 setTimeout(() => { 
                     this.isReceivingRemoteUpdate = false; 
                     console.log("📡 Flag de actualización remota desactivado.");
                 }, 100);
 
             } else {
-                // El documento no existe, es la primera vez que alguien se conecta.
                 NotificationSystem.info('No se encontró estado remoto. Creando uno nuevo.');
-                // Forzamos un guardado del estado inicial (vacío)
                 this.notify({ fullRender: true }); 
             }
         }, (error) => {
@@ -172,7 +166,7 @@ export class DataStore {
     getLatestVersionNumber() { return this.versionStore.getLatestVersionNumber(); }
     addNewEmptyVersion() {
         const nuevaVersion = this.versionStore.addEmptyVersion();
-        this.notify({ fullRender: true }); // Notificar con render completo y guardar
+        this.notify({ fullRender: true }); 
         return nuevaVersion;
     }
     duplicateVersion(versionId) {
@@ -238,10 +232,10 @@ export class DataStore {
         if (!version) return null;
         const nuevoCdu = this.cduStore.addCduToVersion(versionId);
         if (nuevoCdu) {
-            this.changeTracker.addPendingChange({
+            this.addPendingChange({ // <-- Llamada al método modificado
                 cduId: nuevoCdu.id, campo: 'creacion', valorAnterior: null, valorNuevo: 'CDU creado',
                 cduNombre: 'Nuevo CDU', versionId: versionId, versionNumero: version.numero,
-                timestamp: new Date().toISOString(), tipo: 'creacion'
+                tipo: 'creacion'
             });
             this.notify({ fullRender: false, skipSave: true });
         }
@@ -258,10 +252,10 @@ export class DataStore {
         const { cdu, version } = this.cduStore.findCdu(cduId) || {};
         if (!cdu || !version) return false;
 
-        this.changeTracker.addPendingChange({
+        this.addPendingChange({ // <-- Llamada al método modificado
             cduId: cduId, campo: 'cdu-eliminado', valorAnterior: `CDU: ${cdu.nombreCDU || 'Sin nombre'}`,
             valorNuevo: null, cduNombre: cdu.nombreCDU || 'Sin nombre', versionId: version.id,
-            versionNumero: version.numero, timestamp: new Date().toISOString(), tipo: 'eliminacion'
+            versionNumero: version.numero, tipo: 'eliminacion'
         });
 
         const deleted = this.cduStore.deleteCdu(cduId);
@@ -310,17 +304,48 @@ export class DataStore {
         this.cduStore.addHistorialEntry(cduId, tipo, valorAnterior, valorNuevo, campo);
     }
 
-    // =============== GESTIÓN DE CAMBIOS PENDIENTES (Sin cambios) ===============
-    // (La lógica existente funciona perfecto con el nuevo `notify`)
+    // =============== GESTIÓN DE CAMBIOS PENDIENTES (MODIFICADO) ===============
+    
+    /**
+     * Añade un cambio pendiente e inyecta la info del usuario.
+     */
     addPendingChange(change) {
-        this.changeTracker.addPendingChange(change);
+        // *** INICIO DE LA MODIFICACIÓN ***
+        const user = auth.currentUser;
+        const userInfo = user 
+            ? { userEmail: user.email, userId: user.uid } 
+            : { userEmail: 'Usuario Desconocido', userId: null };
+
+        const changeWithUser = {
+            ...change,
+            ...userInfo,
+            // Usar un timestamp local para el *seguimiento* del cambio
+            // El timestamp del servidor se añadirá al guardar en el log
+            localTimestamp: new Date().toISOString() 
+        };
+        // *** FIN DE LA MODIFICACIÓN ***
+
+        this.changeTracker.addPendingChange(changeWithUser); // Añade el cambio enriquecido
         this.notify({ skipSave: true });
     }
+
+    /**
+     * Aplica los cambios y los registra en el log de actividad.
+     */
     applyPendingChanges() {
         const appliedChanges = this.changeTracker.applyPendingChanges();
-        this.notify({ fullRender: true }); // Esto disparará el guardado en Firebase
+        
+        // *** INICIO DE LA MODIFICACIÓN ***
+        // No solo notifica, sino que también guarda en el log de actividad
+        if (appliedChanges.length > 0) {
+            _logActivityToFirebase(appliedChanges); // Guardar en la colección "activityLog"
+        }
+        // *** FIN DE LA MODIFICACIÓN ***
+
+        this.notify({ fullRender: true }); // Esto disparará el guardado del *estado principal*
         return appliedChanges;
     }
+    
     discardPendingChanges() {
         const restored = this.changeTracker.restoreSnapshot();
         this.changeTracker.reset();
@@ -332,14 +357,11 @@ export class DataStore {
     }
 
     // =============== IMPORTACIÓN / REEMPLAZO (Sin cambios) ===============
-    // (Esta función ahora es llamada por `subscribeToRemoteChanges`)
     replaceAll(nuevasVersiones, versionEnProduccionIdImportado = null) {
         console.log('🔄 DIAGNÓSTICO - dataStore.replaceAll llamado');
         this.changeTracker.reset();
         this.versionStore.replaceAll(nuevasVersiones, versionEnProduccionIdImportado);
         this.cduStore.syncNextCduId();
-        // Esta notificación será "atrapada" por el flag `isReceivingRemoteUpdate`
-        // y solo actualizará la UI, sin volver a guardar.
         this.notify({ fullRender: true }); 
         console.log('✅ DIAGNÓSTICO - replaceAll completado.');
     }

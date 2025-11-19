@@ -13,9 +13,33 @@ export class NavigationEvents {
         this.setupBackButton();
         this.setupEditCommentsButton();
         this.setupSearchToggle();
-        this.setupViewToggle(); // NUEVA LLAMADA
-        this.setupPaginationEvents(); // NUEVA LLAMADA
+        this.setupViewToggle(); 
+        this.setupPaginationEvents();
+        
+        // --- AÑADIDO ---
+        this.setupActivityLogButtons(); 
+        // --- FIN AÑADIDO ---
+
         console.log('✅ Eventos de navegación configurados');
+    }
+
+    /**
+     * ¡NUEVO! Configura los botones para la vista de log.
+     */
+    setupActivityLogButtons() {
+        const btnShowLog = document.getElementById('btn-activity-log');
+        if (btnShowLog) {
+            btnShowLog.addEventListener('click', () => {
+                this.renderer.showActivityLogView();
+            });
+        }
+
+        const btnBackFromLog = document.getElementById('btn-back-to-cards-from-activity');
+        if (btnBackFromLog) {
+            btnBackFromLog.addEventListener('click', () => {
+                this.renderer.showCardsView();
+            });
+        }
     }
 
     setupBackButton() {
@@ -25,36 +49,36 @@ export class NavigationEvents {
         });
     }
 
-setupEditCommentsButton() {
-    const btnEditComments = document.getElementById('btn-edit-version-comments');
-    btnEditComments.addEventListener('click', async () => {
-        if (!this.renderer.currentVersionId) return;
-        
-        const version = this.dataStore.getAll().find(v => v.id === this.renderer.currentVersionId);
-        if (!version) return;
-        
-        const comentariosAnteriores = JSON.parse(JSON.stringify(version.comentarios));
-        
-        const nuevosComentarios = await ComentariosModal.show(
-            version.numero,
-            version.comentarios
-        );
-        
-        if (nuevosComentarios !== null) {
-            // Registrar cambios pendientes
-            this.registrarCambiosComentarios(version.id, comentariosAnteriores, nuevosComentarios, version.numero);
+    setupEditCommentsButton() {
+        const btnEditComments = document.getElementById('btn-edit-version-comments');
+        btnEditComments.addEventListener('click', async () => {
+            if (!this.renderer.currentVersionId) return;
             
-            // Actualizar en dataStore
-            this.dataStore.updateVersion(this.renderer.currentVersionId, 'comentarios', nuevosComentarios);
+            const version = this.dataStore.getAll().find(v => v.id === this.renderer.currentVersionId);
+            if (!version) return;
             
-            // CAMBIO: En lugar de fullRender(), actualizar solo comentarios
-            this.renderer.updateVersionComments();
+            // Guardar copia profunda para comparar
+            const comentariosAnteriores = JSON.parse(JSON.stringify(
+                version.comentarios || this.dataStore.getDefaultComentarios()
+            ));
             
-            // Actualizar stats globales
-            this.renderer.updateStats();
-        }
-    });
-}
+            const nuevosComentarios = await ComentariosModal.show(
+                version.numero,
+                version.comentarios
+            );
+            
+            if (nuevosComentarios !== null) {
+                // Registrar cambios pendientes
+                this.registrarCambiosComentarios(version.id, comentariosAnteriores, nuevosComentarios, version.numero);
+                
+                // Actualizar en dataStore (esto dispara un notify)
+                this.dataStore.updateVersion(this.renderer.currentVersionId, 'comentarios', nuevosComentarios);
+                
+                // Actualizar solo comentarios en la UI
+                this.renderer.updateVersionComments();
+            }
+        });
+    }
 
     setupSearchToggle() {
         const btnToggle = document.getElementById('btn-toggle-search');
@@ -72,8 +96,8 @@ setupEditCommentsButton() {
             }
         });
     }
+    
     setupViewToggle() {
-        // Usamos delegación en un contenedor superior, p.ej. 'cards-actions'
         const actionsContainer = document.querySelector('.cards-actions');
         if (!actionsContainer) return;
 
@@ -100,9 +124,6 @@ setupEditCommentsButton() {
         });
     }
 
-    /**
-     * ¡NUEVO! Configura los botones de paginación.
-     */
     setupPaginationEvents() {
         const listContainer = document.getElementById('versions-list-container');
         if (!listContainer) return;
@@ -123,8 +144,9 @@ setupEditCommentsButton() {
         const categorias = ['mejoras', 'salidas', 'cambiosCaliente', 'observaciones'];
         
         categorias.forEach(categoria => {
-            const itemsAnteriores = anteriores[categoria] || [];
-            const itemsNuevos = nuevos[categoria] || [];
+            // Asegurarse de que 'anteriores' tenga la estructura correcta
+            const itemsAnteriores = (anteriores && Array.isArray(anteriores[categoria])) ? anteriores[categoria] : [];
+            const itemsNuevos = (nuevos && Array.isArray(nuevos[categoria])) ? nuevos[categoria] : [];
             
             if (itemsNuevos.length > itemsAnteriores.length) {
                 for (let i = itemsAnteriores.length; i < itemsNuevos.length; i++) {
@@ -135,7 +157,6 @@ setupEditCommentsButton() {
                         valorAnterior: null,
                         valorNuevo: itemsNuevos[i],
                         versionNumero,
-                        timestamp: new Date().toISOString(),
                         tipo: 'comentario-version'
                     });
                 }
@@ -150,7 +171,6 @@ setupEditCommentsButton() {
                         valorAnterior: itemsAnteriores[i],
                         valorNuevo: null,
                         versionNumero,
-                        timestamp: new Date().toISOString(),
                         tipo: 'comentario-version'
                     });
                 }
@@ -166,7 +186,6 @@ setupEditCommentsButton() {
                         valorAnterior: itemsAnteriores[i],
                         valorNuevo: itemsNuevos[i],
                         versionNumero,
-                        timestamp: new Date().toISOString(),
                         tipo: 'comentario-version'
                     });
                 }

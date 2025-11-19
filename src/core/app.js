@@ -13,14 +13,14 @@ export class App {
     }
 
     init() {
-        // ¡CAMBIO CLAVE!
-        // En lugar de cargar desde localStorage...
-        // StorageManager.loadState(this.dataStore);
+        // init() ahora es llamado DESPUÉS del login.
         
         // ...nos suscribimos a los cambios de Firebase.
         this.dataStore.subscribeToRemoteChanges();
         
         this.renderer.init();
-        this.eventCoordinator.setupEventListeners();
+
+        // Configura solo los listeners de la app principal
+        this.eventCoordinator.setupAppEventListeners(); // <-- CAMBIADO
     }
 }

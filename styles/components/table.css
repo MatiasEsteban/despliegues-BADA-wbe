@@ -20,7 +20,7 @@
 /* === TABLA BASE === */
 .tabla-despliegues {
     width: 100%;
-    min-width: 1200px;
+    min-width: 1600px;
     border-collapse: collapse;
     table-layout: fixed;
 }
@@ -38,17 +38,15 @@
 }
 
 /* Anchos de columnas */
-
-/* Anchos de columnas */
 .tabla-despliegues th:nth-child(1) { width: 180px; }  /* CDU */
-.tabla-despliegues th:nth-child(2) { width: 250px; }  /* Descripción */
-.tabla-despliegues th:nth-child(3) { width: 200px; }  /* Estado */
-.tabla-despliegues th:nth-child(4) { width: 80px; }   /* Versión BADA (reducido) */
-.tabla-despliegues th:nth-child(5) { width: 80px; }   /* Version de Miró (nuevo) */
-.tabla-despliegues th:nth-child(6) { width: 220px; }  /* Responsables */
-.tabla-despliegues th:nth-child(7) { width: 300px; }  /* Observaciones */
-.tabla-despliegues th:nth-child(8) { width: 100px; }  /* Acciones */
-
+.tabla-despliegues th:nth-child(2) { width: 220px; }  /* Descripción */
+.tabla-despliegues th:nth-child(3) { width: 180px; }  /* Estado */
+.tabla-despliegues th:nth-child(4) { width: 120px; }  /* Métrica BADA */
+.tabla-despliegues th:nth-child(5) { width: 80px; }   /* Version de Miró */
+.tabla-despliegues th:nth-child(6) { width: 250px; }  /* Pasos */
+.tabla-despliegues th:nth-child(7) { width: 220px; }  /* Responsables */
+.tabla-despliegues th:nth-child(8) { width: 250px; }  /* Observaciones */
+.tabla-despliegues th:nth-child(9) { width: 80px; }   /* Acciones */
 
 /* === FILAS === */
 .tabla-despliegues tbody tr {
@@ -59,10 +57,6 @@
 
 .tabla-despliegues tbody tr:hover {
     background: var(--bg-secondary);
-}
-
-.tabla-despliegues tbody tr.filtered-out {
-    display: none;
 }
 
 .tabla-despliegues tbody td {
@@ -98,56 +92,229 @@
     resize: vertical;
 }
 
-.campo-version-bada {
+/* === GRÁFICO BADA === */
+.bada-graph-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.25rem 0;
+}
+
+.bada-graph-empty {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-style: italic;
+    text-align: center;
+    display: block;
+}
+
+.bada-graph-bar {
+    width: 100%;
+    height: 12px;
     background: var(--bg-secondary);
-    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    border: 1px solid var(--border-color);
+}
+
+.bada-segment {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.segment-v1 { background-color: #3B82F6; }
+.segment-v2 { background-color: #F97316; }
+
+.bada-graph-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.label-v1 { color: #3B82F6; }
+.label-v2 { color: #F97316; }
+
+/* === PASOS (ACORDEÓN) === */
+.pasos-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+}
+
+.pasos-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
     font-weight: 600;
+    color: var(--text-secondary);
+    padding: 0 0.2rem;
+}
+
+.pasos-count-val {
+    color: var(--text-primary);
+}
+
+/* Estilo del porcentaje */
+.pasos-percent-val {
+    margin-left: 0.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.pasos-percent-val.percent-success {
+    color: #10B981; /* Verde */
+    background: #d1fae5;
+}
+
+.btn-toggle-pasos {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0.2rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+.btn-toggle-pasos:hover {
+    background: var(--bg-primary);
+    color: var(--accent-color);
+}
+
+.pasos-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.pasos-content.hidden {
+    display: none;
+}
+
+.paso-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.paso-item.completed {
+    background: #f0fdf4; /* Verde muy claro */
+    border-color: #86efac;
+}
+
+.paso-item.completed .paso-titulo {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.paso-inputs-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.paso-check-container {
+    display: flex;
+    align-items: center;
+}
+
+.paso-check {
+    width: 16px !important;
+    height: 16px !important;
+    cursor: pointer;
+    margin: 0;
+}
+
+.paso-titulo {
+    flex: 1;
+    min-width: 0;
+    font-weight: 500;
+}
+
+.paso-meta-row {
+    display: flex;
+    gap: 0.5rem;
+    padding-left: 1.5rem; /* Indentado para alinear con el título */
+}
+
+.paso-dificultad, .paso-version {
+    font-size: 0.75rem !important;
+    padding: 0.3rem !important;
+    height: auto !important;
+}
+
+.paso-dificultad { flex: 2; }
+.paso-version { flex: 1; }
+
+.btn-paso {
+    padding: 0.3rem 0.6rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-primary);
     transition: all 0.2s;
 }
 
-.campo-version-bada:hover {
-    border-color: var(--accent-color);
+.btn-paso.btn-add {
+    width: 100%;
+    text-align: center;
+    font-weight: 600;
+    background: var(--bg-primary);
+    border: 1px dashed var(--border-color);
+    color: var(--accent-color);
+}
+.btn-paso.btn-add:hover {
+    background: var(--accent-color);
+    color: white;
+    border-style: solid;
 }
 
-.campo-version-bada:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.1);
+.btn-paso.btn-remove {
+    color: #ef4444;
+    border-color: #ef4444;
+    background: transparent;
+}
+.btn-paso.btn-remove:hover {
+    background: #ef4444;
+    color: white;
 }
 
-/* === CDU CON HISTORIAL === */
+.pasos-empty {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+/* === RESPONSABLES & OBS === */
 .cdu-cell-with-actions {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-/* === RESPONSABLES === */
-.responsables-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 250px;
-    overflow-y: auto;
-}
-
-.responsable-item {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.responsable-item input {
-    flex: 1;
-    min-width: 0;
-}
-
-.responsables-empty {
-    color: var(--text-secondary);
-    font-style: italic;
-    font-size: 0.875rem;
-}
-
-/* === OBSERVACIONES === */
+.responsables-container,
 .observaciones-container {
     display: flex;
     flex-direction: column;
@@ -156,19 +323,49 @@
     overflow-y: auto;
 }
 
-.observacion-item {
+.responsable-item, .observacion-item {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
 }
 
-.observacion-item input {
-    flex: 1;
-}
-
+.responsables-empty,
 .observaciones-empty {
     color: var(--text-secondary);
     font-style: italic;
     font-size: 0.875rem;
+}
+
+.btn-responsable,
+.btn-observacion {
+    padding: 0.5rem 0.75rem;
+    min-width: 36px;
+    height: 36px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-responsable:hover,
+.btn-observacion:hover {
+    background: var(--accent-color);
+    color: white;
+}
+
+.btn-responsable.btn-remove,
+.btn-observacion.btn-remove {
+    color: #ef4444;
+    border-color: #ef4444;
+    background: transparent;
+}
+.btn-responsable.btn-remove:hover,
+.btn-observacion.btn-remove:hover {
+    background: #ef4444;
+    color: white;
 }
 
 /* === FOOTER DE TABLA === */

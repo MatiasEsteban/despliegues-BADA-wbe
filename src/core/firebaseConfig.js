@@ -1,6 +1,7 @@
 // src/core/firebaseConfig.js
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // <--- AÑADIDO
 
 const firebaseConfig = {
 
@@ -17,3 +18,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 // Exporta la instancia de Firestore
 export const db = getFirestore(app);
+// Exporta la instancia de Auth
+export const auth = getAuth(app); // <--- AÑADIDO
