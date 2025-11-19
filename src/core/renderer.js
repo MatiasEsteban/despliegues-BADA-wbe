@@ -49,8 +49,6 @@ export class Renderer {
             this.loadMoreContainer = this.viewCardsContainer.querySelector('#load-more-container');
 
             if (!this.gridContainer || !this.listContainer || !this.loadMoreContainer) {
-                // console.error("Error Crítico: Faltan contenedores hijos."); 
-                // Silent fail is dangerous, let's try to recover or just log.
                 return false;
             }
         }
@@ -229,7 +227,6 @@ export class Renderer {
         };
 
         container.appendChild(createBtn('«', current - 1, current === 1));
-        // Lógica simplificada de paginación
         for (let i = 1; i <= total; i++) {
             if (i === 1 || i === total || (i >= current - 1 && i <= current + 1)) {
                 container.appendChild(createBtn(i, i, false, i === current));
@@ -272,8 +269,6 @@ export class Renderer {
         const version = this.dataStore.getAll().find(v => v.id === versionId);
         if (!version) { this.showCardsView(); return; }
 
-        // Render Header HTML
-        // Nota: Los values usan || '' para asegurar que no salga 'undefined'
         const header = document.querySelector('.version-detail-header');
         header.innerHTML = `
             <button id="btn-back-to-cards" class="btn btn-back">
@@ -358,15 +353,129 @@ export class Renderer {
     }
 
     updateVersionComments(version = null) {
-        // Lógica de comentarios (sin cambios mayores, solo asegurar elementos)
-        if(!document.getElementById('version-comments-container')) return;
-        const v = version || this.dataStore.getById(this.currentVersionId);
-        if (!v) return;
-        
-        // ... (reutilizar lógica de renderizado de comentarios)
-        // Para brevedad, asumo que la lógica existente de comentarios funciona
-        // ya que no se reportó falla ahí.
+        if (this.currentView !== 'detail' || !this.currentVersionId) return;
+
+        const versionToUse = version || this.dataStore.getAll().find(v => v.id === this.currentVersionId);
+        if (!versionToUse) return;
+
+        const commentsDisplay = document.getElementById('version-comments-display');
+        const commentsContainer = document.getElementById('version-comments-container');
+        if (!commentsDisplay || !commentsContainer) return;
+
+        const comentarios = versionToUse.comentarios;
+        const hasComentarios = this.tieneComentarios(comentarios);
+
+        if (hasComentarios) {
+            commentsContainer.innerHTML = this.renderComentariosCategorizados(comentarios);
+            commentsDisplay.style.display = 'block';
+            commentsContainer.style.opacity = '0';
+             requestAnimationFrame(() => {
+                 commentsContainer.style.transition = 'opacity 0.3s ease';
+                 commentsContainer.style.opacity = '1';
+             });
+        } else {
+            commentsDisplay.style.display = 'none';
+        }
     }
+
+    tieneComentarios(comentarios) {
+        if (!comentarios) return false;
+        if (typeof comentarios === 'string') return comentarios.trim().length > 0;
+        return Object.values(comentarios).some(arr => Array.isArray(arr) && arr.length > 0);
+    }
+
+    /**
+     * Renderiza comentarios categorizados con toggle (CORREGIDO: Visibles por defecto)
+     */
+    renderComentariosCategorizados(comentarios) {
+         let comentariosObj = comentarios;
+         if (typeof comentarios === 'string') {
+             comentariosObj = { mejoras: [], salidas: [], cambiosCaliente: [], observaciones: [comentarios] };
+         } else if (!comentarios || typeof comentarios !== 'object') {
+              comentariosObj = { mejoras: [], salidas: [], cambiosCaliente: [], observaciones: [] };
+         } else {
+              comentariosObj = {
+                   mejoras: Array.isArray(comentarios.mejoras) ? comentarios.mejoras : [],
+                   salidas: Array.isArray(comentarios.salidas) ? comentarios.salidas : [],
+                   cambiosCaliente: Array.isArray(comentarios.cambiosCaliente) ? comentarios.cambiosCaliente : [],
+                   observaciones: Array.isArray(comentarios.observaciones) ? comentarios.observaciones : []
+              };
+         }
+
+        let html = '';
+         const iconos = {
+            mejoras: `<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"></path><path d="M8.5 2h7"></path><path d="M7 16h10"></path></svg>`,
+            salidas: `<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`,
+            cambiosCaliente: `<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`,
+            observaciones: `<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`
+        };
+        const categorias = [
+            { key: 'mejoras', titulo: 'Mejoras y Bugfixes' },
+            { key: 'salidas', titulo: 'Salidas a Producción' },
+            { key: 'cambiosCaliente', titulo: 'Cambios en Caliente (CeC)' },
+            { key: 'observaciones', titulo: 'Observaciones' }
+        ];
+
+         categorias.forEach(cat => {
+             const items = comentariosObj[cat.key];
+             const validItems = items.filter(item => item && String(item).trim());
+             if (validItems.length > 0) {
+                 const itemsHTML = validItems.map(item => `<li>${item}</li>`).join('');
+                 // CORRECCIÓN: NO TIENE CLASE "HIDDEN" Y FLECHA APUNTA ARRIBA
+                 html += `
+                     <div class="comentario-display-categoria">
+                         <div class="comentario-display-header">
+                             <div class="comentario-header-title">
+                                  ${iconos[cat.key] || ''}
+                                 <strong>${cat.titulo}</strong>
+                             </div>
+                             <button class="btn-toggle-comment" data-action="toggle-comment-cat" title="Mostrar/Ocultar">
+                                 <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18 15 12 9 6 15"></polyline>
+                                 </svg>
+                             </button>
+                         </div>
+                         <ul class="comentario-display-list">
+                             ${itemsHTML}
+                         </ul>
+                     </div>
+                 `;
+             }
+         });
+
+        return html || '<p style="padding: 1rem; color: var(--text-secondary); text-align: center;">No hay comentarios para esta versión.</p>';
+    }
+
+    showNoCdusMessage(tbody) {
+        if (!tbody) return;
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                    <svg style="width: 48px; height: 48px; margin-bottom: 0.5rem; opacity: 0.5;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg><br>
+                    ${this.detailFilters.search || this.detailFilters.estado || this.detailFilters.responsable
+                        ? 'Ningún CDU coincide con los filtros aplicados.'
+                        : 'Esta versión no tiene CDUs asociados.'
+                    }
+                </td>
+            </tr>`;
+    }
+
+    formatDate(dateString) {
+         if (!dateString) return 'Sin fecha';
+         try {
+             const date = new Date(dateString + 'T00:00:00Z');
+              if (isNaN(date)) return 'Fecha inválida';
+             const day = date.getUTCDate().toString().padStart(2, '0');
+             const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+             const year = date.getUTCFullYear();
+             return `${day}/${month}/${year}`;
+         } catch (e) { return 'Fecha inválida'; }
+    }
+
+    updateStats() { console.log('📊 Actualización de stats (solo consola)'); }
 
     init() {
         this.showCardsView();
@@ -375,6 +484,30 @@ export class Renderer {
                 if(opts.fullRender) this.renderCardsView();
                 else if(this.currentView === 'cards') this.renderCardsView();
             }
+             else if (this.currentView === 'detail' && !options.fullRender) {
+                this.updateVersionComments();
+            }
         });
+    }
+
+    fullRender() {
+        this.isRendering = true;
+        try {
+            if (this.currentView === 'cards') {
+                this.cardViewMode = (this.cardViewMode === 'list') ? 'list' : 'grid';
+                this.listCurrentPage = 1;
+                this.versionesVisibles = 10;
+                this.renderCardsView();
+            } else if (this.currentView === 'detail' && this.currentVersionId) {
+                 this.renderDetailView(this.currentVersionId);
+            } else {
+                 this.showCardsView();
+            }
+        } catch (error) {
+             console.error("❌ Error durante fullRender:", error);
+             try { this.showCardsView(); } catch (e) {}
+        } finally {
+             requestAnimationFrame(() => { this.isRendering = false; });
+        }
     }
 }
